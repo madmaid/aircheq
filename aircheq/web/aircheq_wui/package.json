@@ -1,0 +1,43 @@
+{
+  "name": "aircheq-wui",
+  "version": "0.0.1",
+  "description": "wui for aircheq streaming radio recorder",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "oshiosalt",
+  "license": "GPL-3.0",
+  "dependencies": {
+    "mobx": "^3.1.0",
+    "mobx-react": "^4.1.0",
+    "moment": "^2.18.1",
+    "react": "^15.4.2",
+    "react-dom": "^15.4.2",
+    "react-modal": "^1.7.7",
+    "react-router-dom": "^4.1.1",
+    "styled-components": "^2.0.1",
+    "whatwg-fetch": "^2.0.3"
+  },
+  "devDependencies": {
+    "@types/react": "^15.0.11",
+    "@types/react-dom": "^0.14.23",
+    "@types/react-modal": "^1.6.6",
+    "@types/react-router": "^4.0.4",
+    "@types/react-router-dom": "^4.0.4",
+    "@types/whatwg-fetch": "0.0.33",
+    "babel": "^6.23.0",
+    "babel-core": "^6.24.1",
+    "babel-loader": "^7.0.0",
+    "babel-polyfill": "^6.23.0",
+    "babel-preset-env": "^1.4.0",
+    "babel-preset-es2015": "^6.24.1",
+    "babel-preset-react": "^6.24.1",
+    "eslint": "^3.15.0",
+    "install": "^0.8.9",
+    "ts-loader": "^2.0.3",
+    "typescript": "^2.1.6",
+    "webpack": "^2.2.1",
+    "webpack-dev-server": "^2.3.0"
+  }
+}

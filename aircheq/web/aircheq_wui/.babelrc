@@ -1,0 +1,7 @@
+{
+  "passPerPreset": true,
+  "presets": [
+    "react",
+    "es2015",
+  ]
+}

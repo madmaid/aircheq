@@ -1,0 +1,32 @@
+# -*- coding: utf-8 -*-
+import pytz
+import datetime
+
+from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy import Column, Integer, String, DateTime, Interval, Boolean
+
+Base = declarative_base()
+class Program(Base):
+    __tablename__ = 'programs'
+    id = Column(Integer, primary_key=True)
+    service = Column(String)
+    channel = Column(String)
+    channel_jp = Column(String)
+    title = Column(String)
+    info = Column(String)
+    start = Column(DateTime)
+    end = Column(DateTime)
+    duration = Column(Interval)
+    is_movie = Column(Boolean)
+    is_repeat = Column(Boolean)
+    is_reserved = Column(Boolean, default=False)
+    is_recorded = Column(Boolean, default=False)
+
+def dict_to_program(dic):
+    program = Program()
+    for attr in dic:
+        setattr(program, attr, dic[attr])
+    return program
+
+def naive_to_UTC(dt):
+    return dt.astimezone(tz=pytz.UTC)
