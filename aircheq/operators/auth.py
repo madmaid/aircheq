@@ -92,8 +92,8 @@ class RadikoAuth(object):
             self.get_player()
 
         cmd = "swfextract -b 12 {PLAYER_PATH} -o {KEY_PATH}".format_map({
-                PLAYER_PATH: self.PLAYER_PATH,
-                KEY_PATH: self.KEY_PATH,
+                "PLAYER_PATH": os.path.abspath(self.PLAYER_PATH),
+                "KEY_PATH": self.KEY_PATH,
             }).split(" ")
         subprocess.run(cmd, check=True)
 
