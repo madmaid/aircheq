@@ -34,7 +34,16 @@ def task():
 
     del_session.close()
 
-    programs = list(fetch_all())    # in order to prevent too long transaction
+    # try to fetch resources
+    interval = datetime.timedelta(seconds=300) # 5min
+    now = datetime.datetime.now
+    for dt in utils.time_intervals(interval, first_time=now()):
+        programs = list(fetch_all())    # in order to prevent too long transaction
+        if programs == []:
+            logger.warning("Programs not found")
+        else:
+            break
+
     session = Session(autocommit=True)
     with session.begin():
 
@@ -48,15 +57,15 @@ def main():
     logger = logging.getLogger("aircheq-crawler")
     sch = sched.scheduler(time.time)
     task() # crawl at launch
-    combine = datetime.datetime.combine
 
-    # Monday 5AM
     ESTIMATED_TIME = datetime.time(5, 10)
+    combine = datetime.datetime.combine
     if datetime.datetime.now() < combine(datetime.date.today(), ESTIMATED_TIME):
         estimated_date = datetime.date.today()
     else:
         estimated_date = utils.get_coming_weekday(0)
 
+    # Monday 5AM
     first_time = combine(estimated_date, ESTIMATED_TIME) 
 
     for dt in utils.time_intervals(datetime.timedelta(days=1), first_time=first_time):
