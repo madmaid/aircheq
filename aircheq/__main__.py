@@ -33,10 +33,12 @@ def task():
     logger = getLogger("aircheq-recorder")
     session = Session(autocommit=True)
     with session.begin():
-        criteria = and_(Program.is_reserved == True,
+        criteria = and_(
+                Program.is_reserved == True,
                 Program.end > datetime.datetime.now(),
                 Program.is_recorded != True)
 
+        # Recording
         for p in session.query(Program).filter(criteria):
             by_start = p.start - datetime.datetime.now()
 
@@ -69,6 +71,7 @@ if __name__ == '__main__':
     recorder_logger.addHandler(utils.RECORDER_LOG)
     recorder_logger.setLevel(logging.INFO)
 
+    # create tables
     if not engine.dialect.has_table(engine, Program.__tablename__):
         model.Base.metadata.create_all(bind=engine)
     if not engine.dialect.has_table(engine, reserve.Rule.__tablename__):
