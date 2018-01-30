@@ -18,15 +18,30 @@ from .. import config
 
 engine = create_engine(config.GUIDE_DATABASE_URL, echo=False)
 Session = sessionmaker(bind=engine)
+logger = logging.getLogger("aircheq-crawler")
 
 def fetch_all():
     for parser in parsers.modules:
         for program in parser.get_programs():
             yield program
 
+def crawl(retry_interval):
+    retry_interval = datetime.timedelta(seconds=300) # 5min
+    now = datetime.datetime.now
+    for dt in utils.time_intervals(retry_interval, first_time=now()):
+        logger.info("Try to fetch resources")
+        programs = list(fetch_all())    # in order to prevent too long transaction
+
+        if programs == []:
+            logger.warning("Guide programs not found")
+            continue    # retry to crawl
+        else:
+            return programs
+
 def task():
-    logger = logging.getLogger("aircheq-crawler")
     logger.info("Start Crawl")
+
+    # refresh db
     del_session = Session(autocommit=True)
     with del_session.begin():
 
@@ -34,15 +49,9 @@ def task():
 
     del_session.close()
 
-    # try to fetch resources
-    interval = datetime.timedelta(seconds=300) # 5min
-    now = datetime.datetime.now
-    for dt in utils.time_intervals(interval, first_time=now()):
-        programs = list(fetch_all())    # in order to prevent too long transaction
-        if programs == []:
-            logger.warning("Programs not found")
-        else:
-            break
+    # fetch resources
+    interval = datetime.timedelta(seconds=60)
+    programs = crawl(interval)
 
     session = Session(autocommit=True)
     with session.begin():
@@ -54,7 +63,7 @@ def task():
     reserve.reserve_all(Session)
 
 def main():
-    logger = logging.getLogger("aircheq-crawler")
+    #logger = logging.getLogger("aircheq-crawler")
     sch = sched.scheduler(time.time)
     task() # crawl at launch
 

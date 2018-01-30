@@ -1,6 +1,6 @@
 import * as React from 'react'
 import {
-    MemoryRouter as _Router,  //TODO: change
+    BrowserRouter as _Router,
     Route,
     Link,
 } from "react-router-dom"
