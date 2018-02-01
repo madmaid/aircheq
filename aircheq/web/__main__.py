@@ -209,6 +209,19 @@ def change_rule():
     session.close()
     return jsonify({'res': 'Done'})
 
+@app.route('/api/delete_rule.json', methods=['POST'])
+def delete_rule():
+    _json = request.json
+
+    session = Session(autocommit=True)
+    with session.begin(subtransactions=True):
+
+        rule = session.query(reserve.Rule).filter_by(id=_json.pop("id")).one()
+        session.delete(rule)
+
+    session.close()
+    return jsonify({'res': 'Done'})
+        
 def main():
     app.run()
     return app
