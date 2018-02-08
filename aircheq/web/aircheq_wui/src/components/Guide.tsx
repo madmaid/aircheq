@@ -93,37 +93,6 @@ const Channel = ( props: ChannelProps ) =>
     </ProgramsList>
 </ChannelContainer>
 
-const HourLabel = styled.div`
-`
-const OneHourBase = styled.div`
-`
-
-const OneHourContainer = (props: { hour: number }) =>
-<HourLabel>{props.hour}</HourLabel>
-
-const HoursDivisionBase = styled.div`
-`
-const HoursDivision = () => {
-    const now = moment().hours()
-    return <HoursDivisionBase>
-            {(() => {
-                let division = []
-                // 24hrs from now
-                for (let i = now; i < 24; i++) {
-                    division.push(<OneHourContainer hour={i} />)
-                }
-                for (let i = 0; i < now; i++) {
-                    division.push(<OneHourContainer hour={i} />)
-                }
-                return division.map((oneHour, i) => 
-                        <OneHourBase key={i}>
-                            {oneHour}
-                        </OneHourBase>
-                    )
-            })()}
-            </HoursDivisionBase>
-}
-
 const ChannelList= styled.ul`
     list-style-type: none;
     list-style-position: inside;
