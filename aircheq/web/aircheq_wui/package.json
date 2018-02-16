@@ -16,6 +16,7 @@
     "react-dom": "^15.4.2",
     "react-modal": "^1.7.7",
     "react-router-dom": "^4.1.1",
+    "recompose": "^0.26.0",
     "styled-components": "^2.0.1",
     "whatwg-fetch": "^2.0.3"
   },
@@ -25,6 +26,7 @@
     "@types/react-modal": "^1.6.6",
     "@types/react-router": "^4.0.4",
     "@types/react-router-dom": "^4.0.4",
+    "@types/recompose": "^0.24.5",
     "@types/whatwg-fetch": "0.0.33",
     "babel": "^6.23.0",
     "babel-core": "^6.24.1",
