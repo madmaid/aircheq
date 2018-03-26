@@ -32,10 +32,10 @@ def crawl(retry_interval):
         logger.info("Try to fetch resources")
         try:
             programs = list(fetch_all())    # pre-fetch to prevent too long transaction
-            assert programs != []
-        except AssertionError:
-            logger.warning("Guide programs not found")
-            continue    # retry to crawl
+
+            if programs == []:
+                logger.warning("Guide programs not found")
+                continue    # retry to crawl
         except KeyError as e :
             logger.warning("JSON KeyError: {}".format(e))
             continue    # retry to crawl
