@@ -2,7 +2,7 @@
 from . import base
 
 class Recorder(base.Recorder):
-    URL = "rtmp://fms-base1.mitene.ad.jp/agqr/aandg22"
+    URL = "rtmp://fms-base2.mitene.ad.jp/agqr/aandg2"
     def __init__(self, program, movie=True):
         """
         duration: int of millisec

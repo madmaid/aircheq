@@ -39,8 +39,6 @@ def crawl(retry_interval):
         except KeyError as e :
             logger.warning("JSON KeyError: {}".format(e))
             continue    # retry to crawl
-        else:
-            return programs
 
 def task():
     logger.info("Start Crawl")
