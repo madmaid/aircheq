@@ -31,7 +31,7 @@ def crawl(retry_interval):
     for dt in utils.time_intervals(retry_interval, first_time=now()):
         logger.info("Try to fetch resources")
         try:
-            programs = list(fetch_all())    # in order to prevent too long transaction
+            programs = list(fetch_all())    # pre-fetch to prevent too long transaction
             assert programs != []
         except AssertionError:
             logger.warning("Guide programs not found")
