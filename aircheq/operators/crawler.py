@@ -32,7 +32,7 @@ def crawl(retry_interval):
         logger.info("Try to fetch resources")
         try:
             programs = list(fetch_all())    # in order to prevent too long transaction
-            assert programs == []
+            assert programs != []
         except AssertionError:
             logger.warning("Guide programs not found")
             continue    # retry to crawl
