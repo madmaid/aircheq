@@ -25,21 +25,20 @@ def fetch_all():
         for program in parser.get_programs():
             yield program
 
-def crawl(retry_interval):
+def crawl(retry_interval, max_count=5):
     retry_interval = datetime.timedelta(seconds=300) # 5min
     now = datetime.datetime.now
-    for dt in utils.time_intervals(retry_interval, first_time=now()):
+    for dt, _ in zip(utils.time_intervals(retry_interval, first_time=now()), range(0, max_count)):
         logger.info("Try to fetch resources")
         try:
             programs = list(fetch_all())    # pre-fetch to prevent too long transaction
-
+        except KeyError as e:
+            logger.warning("JSON KeyError: {}".format(e))
+            continue    # retry
+        else:
             if programs == []:
                 logger.warning("Guide programs not found")
-                continue    # retry to crawl
-        except KeyError as e :
-            logger.warning("JSON KeyError: {}".format(e))
-            continue    # retry to crawl
-        else:
+                continue    # retry
             return programs
 
 def task():
