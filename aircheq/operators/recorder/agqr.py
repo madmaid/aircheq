@@ -2,7 +2,8 @@
 from . import base
 
 class Recorder(base.Recorder):
-    URL = "rtmp://fms-base2.mitene.ad.jp/agqr/aandg2"
+    URL = "rtmp://fms-base2.mitene.ad.jp/agqr/aandg22"
+    FILEEXT = '.flv'
     def __init__(self, program, movie=True):
         """
         duration: int of millisec
@@ -15,6 +16,6 @@ class Recorder(base.Recorder):
         ).format_map({
             'url': self.URL,
             'duration': self.duration,
-            'output': self.save_path,
+            'output': self.save_path + self.FILEEXT,
         }).split(' ')
 

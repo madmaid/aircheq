@@ -34,7 +34,10 @@ def crawl(retry_interval, max_count=5):
             programs = list(fetch_all())    # pre-fetch to prevent too long transaction
         except KeyError as e:
             logger.warning("JSON KeyError: {}".format(e))
-            continue    # retry
+            continue    # retry to crawl
+        except Exception as e:
+            logger.warning("Unknown Error: {}".format(e))
+            continue
         else:
             if programs == []:
                 logger.warning("Guide programs not found")
