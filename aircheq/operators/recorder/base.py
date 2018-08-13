@@ -21,8 +21,9 @@ class Recorder(object):
             # all puncts are replaced with underscore
             s.translate( {punct: "_" for punct in string.punctuation} ).replace(" ", "_")
         )
-        valid_name = validate(name) 
-        filename = valid_name + ".flv"
+        filename= validate(name) 
+        # valid_name = validate(name) 
+        # filename = valid_name + ".flv"
 
 
         # TODO: replace os.path with pathlib

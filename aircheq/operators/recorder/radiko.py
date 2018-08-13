@@ -13,6 +13,7 @@ from .. import auth
 logger = getLogger("aircheq-recorder")
 class Recorder(base.Recorder):
     PLAYER_URL = "http://radiko.jp/apps/js/flash/myplayer-release.swf"
+    FILEEXT = ".flv"
     def __init__(self, program):
         super().__init__(program)
         self.auth = auth.RadikoAuth(logger=logger)
@@ -41,5 +42,5 @@ class Recorder(base.Recorder):
                 "player_url": self.PLAYER_URL,
                 "authtoken": self.authtoken,
                 "duration": self.duration,
-                "output": self.save_path
+                "output": self.save_path + self.FILEEXT
             }).split(" ")
