@@ -28,7 +28,7 @@ def json_to_program(json_dict):
     program.title = json_dict['title']
 
     info = (json_dict['subtitle'], json_dict['content'], json_dict['act'])
-    program.info = '\n'.join(info)
+    program.info = '\n'.join(i for i in info if i is not None)
 
     program.start = dateutil.parser.parse(json_dict['start_time'])
     #_start = dateutil.parser.parse(json_dict['start_time'])
