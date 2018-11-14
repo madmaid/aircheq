@@ -8,6 +8,8 @@ Recorder for Japanese streaming radio service
 * RTMPDump (as a global package)
 * swfextract (as a global package)
 
+* NHK API KEY
+
 ## Installation
     pip install -rrequirements.txt
     cd aircheq/web/aircheq_wui/
