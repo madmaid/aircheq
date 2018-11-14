@@ -3,6 +3,7 @@ import logging
 import time
 import datetime
 import sched
+import traceback
 
 import sqlalchemy.exc
 
@@ -35,8 +36,10 @@ def crawl(retry_interval, max_count=5):
         except KeyError as e:
             logger.warning("JSON KeyError: {}".format(e))
             continue    # retry to crawl
+        except IndexError as e:
+            logger.warning("Index Error: {}".format(traceback.format_exc()))
         except Exception as e:
-            logger.warning("Unknown Error: {}".format(e))
+            logger.warning("Unknown Error: {}".format(e.args))
             continue
         else:
             if programs == []:
