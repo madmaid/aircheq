@@ -5,6 +5,7 @@ import datetime
 import lxml.etree
 import requests
 
+from ... import config
 from .. import auth
 from . import model
 
@@ -17,7 +18,7 @@ def get_stations(radiko_auth=None):
         radiko_auth = auth.RadikoAuth()
 
     area_id = radiko_auth.get_area()
-    url = 'http://radiko.jp/v2/station/list/' + area_id + '.xml'
+    url = config.RADIKO_STATIONS_FROM_AREA_URL.format(area_id=area_id)
     raw_xml = requests.get(url)
     stations_xml = lxml.etree.fromstring(raw_xml.content)
 
@@ -38,9 +39,10 @@ def parse_guide(guide_xml):
     channel_jp = root.xpath('//radiko/stations/station/name')[0].text
     for prog in root.xpath('//progs/prog'):
 
-        main_title = prog.xpath('./title')[0].text
-        sub_title = prog.xpath('./sub_title')[0].text
-        title = main_title + '_' + sub_title if sub_title is not None else main_title
+        title = prog.xpath('./title')[0].text
+        # main_title = prog.xpath('./title')[0].text
+        # sub_title = prog.xpath('./sub_title')[0].text
+        # title = main_title + '_' + sub_title if sub_title is not None else main_title
 
         # parse infomation
         info_html = prog.xpath('./info')[0].text
@@ -80,10 +82,10 @@ def parse_guide(guide_xml):
                 }
         yield program
 
-def get_programs(api='http://radiko.jp/v2/api/program/station/weekly'):
+def get_programs(api=config.RADIKO_WEEKLY_FROM_CHANNEL_URL):
     station_ids = get_stations()
     for station_id in station_ids:
-        req = requests.get(api, params={ 'station_id': station_id })
+        req = requests.get(api.format(station_id=station_id))
 
         for d in parse_guide(req.content):
             yield model.dict_to_program(d)

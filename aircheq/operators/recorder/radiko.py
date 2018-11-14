@@ -7,19 +7,20 @@ from logging import getLogger
 import lxml.etree
 import requests
 
-from . import base
+from ... import config
 from .. import auth
+from . import base
 
 logger = getLogger("aircheq-recorder")
 class Recorder(base.Recorder):
-    PLAYER_URL = "http://radiko.jp/apps/js/flash/myplayer-release.swf"
+    PLAYER_URL = config.RADIKO_PLAYER_URL 
     FILEEXT = ".flv"
     def __init__(self, program):
         super().__init__(program)
         self.auth = auth.RadikoAuth(logger=logger)
         self.authtoken = self.auth.get_authtoken()
 
-        ch_xml_url = 'http://radiko.jp/v2/station/stream/' + program.channel + '.xml'
+        ch_xml_url = config.RADIKO_CHANNEL_XML_URL.format(channel=program.chanel)
         channel_xml = requests.get(ch_xml_url)
         stream_url_full = lxml.etree.fromstring(channel_xml.content).xpath('//url/item/text()')[0]
         print(stream_url_full)
