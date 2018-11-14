@@ -37,7 +37,7 @@ RTMPDUMP_LOG_PATH = LOG_DIR.joinpath("rtmpdump.log")
 RADIKO_TOOLS_DIR = CONFIG_DIR.joinpath("utils/radiko/")
 RADIKO_PLAYER_URL = "http://radiko.jp/apps/js/flash/myplayer-release.swf"
 RADIKO_WEEKLY_FROM_CHANNEL_URL = "http://radiko.jp/v3/program/station/weekly/{station_id}.xml"
-RADIKO_STATIONS_FROM_AREA_URL = "http://radiko.jp/v3/station/list/{area_id}.xml"
+RADIKO_CHANNELS_FROM_AREA_URL = "http://radiko.jp/v3/station/list/{area_id}.xml"
 ####################
 # NHK_API_AREA
 # put an area code as str, refer to http://api-portal.nhk.or.jp/doc-request#explain_area
