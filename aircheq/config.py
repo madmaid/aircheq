@@ -48,16 +48,19 @@ AGQR_GUIDE_URL = "http://agqr.jp/timetable/streaming.html"
 AGQR_STREAM_URL = "rtmp://fms-base2.mitene.ad.jp/agqr/aandg22"
 
 ####################
+# Preference for NHK
+
 # NHK_API_AREA
 # put an area code as str, refer to http://api-portal.nhk.or.jp/doc-request#explain_area
 
 # NHK_API_AREA = str(130) 
 
-####################
 # NHK_API_KEY 
 # put NHK API key as str here 
 
 # NHK_API_KEY = 'PUT_NHK_API_KEY_AS_STR_HERE'
+
+NHK_API_URL = "https://api.nhk.or.jp/v2/pg/list/{area}/{service}/{date}.json?key={apikey}"
 """
 
 CONFIG_DIR = pathlib.Path.home().joinpath(pathlib.Path(".aircheq/"))

@@ -3,8 +3,8 @@ import datetime
 import requests
 import dateutil.parser
 
-from . import model
 from ... import config
+from . import model
 
 NHK_SERVICES = {
         # NHKAPI: RADIRU_STATION
@@ -13,7 +13,6 @@ NHK_SERVICES = {
         'r3': 'fm'
 }
 
-API = "http://api.nhk.or.jp/v2/pg/list/{area}/{service}/{date}.json?key={apikey}"
 
 class APIKeyError(Exception):
     def __init__(self, message):
@@ -42,8 +41,10 @@ def json_to_program(json_dict):
     program.is_repeat = False
     return program
 
-def get_programs(key=config.NHK_API_KEY, channels=NHK_SERVICES.keys(),
-                area=config.NHK_API_AREA, api=API):
+def get_programs(key=config.NHK_API_KEY,
+                channels=NHK_SERVICES.keys(),
+                area=config.NHK_API_AREA,
+                api=config.NHK_API_URL):
 
     if not key:
         raise APIKeyError("API Key is not found. Check user config")
