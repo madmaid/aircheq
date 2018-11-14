@@ -20,6 +20,8 @@ Recorder for Japanese streaming radio service
 
 import pathlib
 
+CONFIG_DIR = pathlib.Path.home().joinpath(pathlib.Path(".aircheq/"))
+
 ####################
 # RECORDED_DIR
 # put a directory path for recorded files
@@ -30,20 +32,32 @@ import pathlib
 # GUIDE_DATABASE_URL
 # put an URL for SQLAlchemy
 
-db_path = pathlib.Path.home().joinpath(pathlib.PurePath('.config/aircheq/db/guide.db'))
-GUIDE_DATABASE_URL = 'sqlite:///' + str(db_path)
+# db_path = pathlib.Path.home().joinpath(pathlib.PurePath('.config/aircheq/db/guide.db'))
+# GUIDE_DATABASE_URL = 'sqlite:///' + str(db_path)
+
+####################
+# Preference for log
+
+# LOG_DIR = CONFIG_DIR.joinpath("logs/")
+# RTMPDUMP_LOG_PATH = LOG_DIR.joinpath("rtmpdump.log")
+
+
+####################
+# Preference for Radiko
+
+# RADIKO_TOOLS_DIR = CONFIG_DIR.joinpath("utils/radiko/")
 
 ####################
 # NHK_API_AREA
 # put an area code as str, refer to http://api-portal.nhk.or.jp/doc-request#explain_area
 
-NHK_API_AREA = str(130) # Tokyo
+# NHK_API_AREA = str(130) 
 
 ####################
 # NHK_API_KEY 
-# put here NHK API key as str
+# put NHK API key as str here 
 
-NHK_API_KEY = 'INPUT_YOUR_NHK_API_KEY_HERE' 
+# NHK_API_KEY = 'PUT_NHK_API_KEY_AS_STR_HERE'
 ```
 
 ## Execution

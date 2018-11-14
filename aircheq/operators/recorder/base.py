@@ -27,8 +27,8 @@ class Recorder(object):
 
 
         # TODO: replace os.path with pathlib
-        if os.path.exists(os.path.abspath(config.SAVE_DIR)):
-            save_path = config.SAVE_DIR
+        if os.path.exists(os.path.abspath(config.RECORDED_DIR)):
+            save_path = config.RECORDED_DIR
         else:
             # TODO: change default directory
             save_path = './'
