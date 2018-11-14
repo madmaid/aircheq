@@ -18,7 +18,7 @@ def get_stations(radiko_auth=None):
         radiko_auth = auth.RadikoAuth()
 
     area_id = radiko_auth.get_area()
-    url = config.RADIKO_STATIONS_FROM_AREA_URL.format(area_id=area_id)
+    url = config.RADIKO_CHANNELS_FROM_AREA_URL.format(area_id=area_id)
     raw_xml = requests.get(url)
     stations_xml = lxml.etree.fromstring(raw_xml.content)
 

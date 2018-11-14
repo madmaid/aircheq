@@ -20,7 +20,7 @@ class Recorder(base.Recorder):
         self.auth = auth.RadikoAuth(logger=logger)
         self.authtoken = self.auth.get_authtoken()
 
-        ch_xml_url = config.RADIKO_CHANNELS_FROM_AREA_URL.format(channel=program.chanel)
+        ch_xml_url = config.RADIKO_STREAM_XML_URL.format(station_id=program.channel)
         channel_xml = requests.get(ch_xml_url)
         stream_url_full = lxml.etree.fromstring(channel_xml.content).xpath('//url/item/text()')[0]
         print(stream_url_full)
