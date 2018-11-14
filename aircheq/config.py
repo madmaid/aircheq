@@ -39,6 +39,14 @@ RADIKO_PLAYER_URL = "http://radiko.jp/apps/js/flash/myplayer-release.swf"
 RADIKO_WEEKLY_FROM_CHANNEL_URL = "http://radiko.jp/v3/program/station/weekly/{station_id}.xml"
 RADIKO_CHANNELS_FROM_AREA_URL = "http://radiko.jp/v3/station/list/{area_id}.xml"
 RADIKO_STREAM_XML_URL = "http://radiko.jp/v2/station/stream/{station_id}.xml"
+
+
+####################
+# Preference for AGQR 
+
+AGQR_GUIDE_URL = "http://agqr.jp/timetable/streaming.html"
+AGQR_STREAM_URL = "rtmp://fms-base2.mitene.ad.jp/agqr/aandg22"
+
 ####################
 # NHK_API_AREA
 # put an area code as str, refer to http://api-portal.nhk.or.jp/doc-request#explain_area

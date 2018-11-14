@@ -1,8 +1,7 @@
-
+from ... import config
 from . import base
 
 class Recorder(base.Recorder):
-    URL = "rtmp://fms-base2.mitene.ad.jp/agqr/aandg22"
     FILEEXT = '.flv'
     def __init__(self, program, movie=True):
         """
@@ -14,7 +13,7 @@ class Recorder(base.Recorder):
         self.command = (
         "rtmpdump -r {url} --live --stop {duration} -o {output}"
         ).format_map({
-            'url': self.URL,
+            'url': config.AGQR_STREAM_URL,
             'duration': self.duration,
             'output': self.save_path + self.FILEEXT,
         }).split(' ')

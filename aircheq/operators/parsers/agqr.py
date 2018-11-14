@@ -6,6 +6,7 @@ import itertools
 import lxml.html
 import requests
 
+from ... import config
 from . import model
 
 def __col(col):
@@ -133,8 +134,7 @@ def parse_guide(html):
                         'is_movie': is_movie,
                 })
     return programs
-
-def get_programs(url='http://agqr.jp/timetable/streaming.html'):
+def get_programs(url=config.AGQR_GUIDE_URL):
     req = requests.get(url)
     for dic in parse_guide(req.content):
         yield model.dict_to_program(dic)
