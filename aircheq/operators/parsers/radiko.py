@@ -1,4 +1,5 @@
 import itertools
+import io
 import datetime
 
 import lxml.etree
@@ -29,6 +30,8 @@ def get_stations(radiko_auth=None):
     return stations
 
 def parse_guide(guide_xml):
+    parser_html = lxml.etree.HTMLParser()
+
     root = lxml.etree.fromstring(guide_xml)
 
     channel = root.xpath('//radiko/stations/station')[0].attrib['id']
@@ -41,18 +44,20 @@ def parse_guide(guide_xml):
 
         # parse infomation
         info_html = prog.xpath('./info')[0].text
-        _info = info_html if info_html is not None else ""
-        #if info_html is not None:
-        #   _info = '\n'.join(_root.xpath('//text()'))
-        #   _root = lxml.html.fromstring(info_html)
-        #else:
-        #   _info = ''
+        broken_tree = lxml.etree.parse(io.StringIO(info_html), parser_html)
 
-        _desc = prog.xpath('./desc')[0].text
-        desc = _desc if _desc is not None else ''
+        elems = [] 
+        for elem in broken_tree.iter():
+            elems.append(elem.tail) if elem.tail is not None else "" 
+            elems.append(elem.attrib["href"]) if "href" in elem.attrib.keys() else ""
+            elems.append(elem.text) if elem.text is not None else ""
+        _info = '\n'.join(elems)
 
-        _person = prog.xpath('./pfm')[0].text
-        person = _person if _person is not None else ''
+        _desc = prog.xpath("./desc")[0].text
+        desc = _desc if _desc is not None else ""
+
+        _person = prog.xpath("./pfm")[0].text
+        person = _person if _person is not None else ""
 
         info = '\n'.join([_info, desc, person])
 
