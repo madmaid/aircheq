@@ -61,6 +61,7 @@ AGQR_STREAM_URL = "rtmp://fms-base2.mitene.ad.jp/agqr/aandg22"
 # NHK_API_KEY = 'PUT_NHK_API_KEY_AS_STR_HERE'
 
 NHK_API_URL = "https://api.nhk.or.jp/v2/pg/list/{area}/{service}/{date}.json?key={apikey}"
+NHK_STREAM_URLS_API= "http://www.nhk.or.jp/radio/config/config_web.xml"
 """
 
 CONFIG_DIR = pathlib.Path.home().joinpath(pathlib.Path(".aircheq/"))
