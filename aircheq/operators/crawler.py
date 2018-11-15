@@ -38,6 +38,7 @@ def crawl(retry_interval, max_count=5):
             continue    # retry to crawl
         except IndexError as e:
             logger.warning("Index Error: {}".format(traceback.format_exc()))
+            continue
         except Exception as e:
             logger.warning("Unknown Error: {}".format(e.args))
             continue
