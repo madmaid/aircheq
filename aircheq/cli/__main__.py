@@ -98,9 +98,14 @@ def create_argparser():
     reserved = subparsers.add_parser('reserved', help='print reserved programs')
     reserved.add_argument('--peco', action="store_true")
     reserved.set_defaults(func=print_reserved)
+
     return root_parser
 
 if __name__ == "__main__":
     parser =  create_argparser()
     args = parser.parse_args()
-    args.func(args)
+    try:
+        args.func(args)
+    except AttributeError:
+        parser.print_usage()
+
