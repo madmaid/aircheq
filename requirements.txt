@@ -9,4 +9,5 @@ pytz==2016.4
 requests==2.20.1
 six==1.10.0
 SQLAlchemy==1.0.13
+tabulate==0.8.2
 Werkzeug==0.14.1
