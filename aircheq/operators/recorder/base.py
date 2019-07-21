@@ -17,14 +17,12 @@ class Recorder(object):
 
         formatter = "{channel}_{title}_{start:%Y%m%d_%H%M}"
         name = formatter.format_map(vars(program))
-        validate = (lambda s:
+        validate = (lambda s: s.translate(str.maketrans(
             # all puncts are replaced with underscore
-            s.translate( {punct: "_" for punct in string.punctuation} ).replace(" ", "_")
-        )
-        filename= validate(name) 
-        # valid_name = validate(name) 
-        # filename = valid_name + ".flv"
-
+            { punct: "_" for punct in string.punctuation + ' ' }
+        )))
+        
+        filename = validate(name) 
 
         # TODO: replace os.path with pathlib
         if os.path.exists(os.path.abspath(config.RECORDED_DIR)):
