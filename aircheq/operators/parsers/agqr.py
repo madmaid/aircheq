@@ -87,11 +87,11 @@ def parse_guide(html):
 
 
 
-            f = (lambda elem, expr:
+            get_href = (lambda elem, expr:
                     elem.xpath(expr)[0].attrib["href"] if elem.xpath(expr) != [] else ""
                 )
-            program_url = f(cell, './div[@class="title-p"]/a')
-            mail_to = f(cell, './div[@class="rp"]/a')
+            program_url = get_href(cell, './div[@class="title-p"]/a')
+            mail_to = get_href(cell, './div[@class="rp"]/a')
 
             person = "".join(cell.xpath('./div[@class="rp"]/text()')).replace("\n", "")
             info = '\n'.join([person, program_url, mail_to])
