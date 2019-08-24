@@ -52,7 +52,7 @@ def task():
 
                 process = multiprocessing.Process(target=r.record, name=p.id)
 
-                msg = "Create Process: {}".format(process)
+                msg = "Create Process: {}, {}".format(process, p.service)
                 logger.info(msg)
 
                 process.start()
