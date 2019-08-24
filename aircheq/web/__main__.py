@@ -46,7 +46,7 @@ Session = sessionmaker(bind=engine)
 def strip_underscore_attr(model_vars):
     return { k : v for k, v in model_vars.items() if not k.startswith("_")}
 
-def program_to_dict(program):
+def program_to_jsondict(program):
     p = vars(program)
 
     p['duration'] = int(program.duration.total_seconds() * 1000)
@@ -80,7 +80,7 @@ def all():
         programs = session.query(Program).order_by(Program.id)
 
     session.close()
-    return jsonify([ program_to_dict(p) for p in programs ])
+    return jsonify([ program_to_jsondict(p) for p in programs ])
 
 @app.route('/api/guide.json', methods=['GET'])
 def guide():
@@ -98,12 +98,13 @@ def guide():
             query = and_(Program.channel == chan, Program.end > datetime.datetime.now())
             programs = session.query(Program).filter(query).order_by(Program.start)
 
-            name_jp = list(set(p.channel_jp for p in programs))[0]
-            _json.append({
-                    'name': chan,
-                    'name_jp': name_jp,
-                    'programs': [ program_to_dict(p) for p in programs ]
-            })
+            if programs != []:
+                name_jp = list(set(p.channel_jp for p in programs))[0]
+                _json.append({
+                        'name': chan,
+                        'name_jp': name_jp,
+                        'programs': [ program_to_jsondict(p) for p in programs ]
+                })
 
         session.close()
     return jsonify(_json)
@@ -115,7 +116,8 @@ def program_by_id():
     with session.begin(subtransactions=True):
 
         program = session.query(Program).filter_by(id=program_id).one()
-        result = program_to_dict(program)
+        result = program_to_jsondict(program)
+
     session.close()
     return jsonify(result)
 
@@ -139,7 +141,7 @@ def get_reserved():
     with session.begin(subtransactions=True):
 
         programs = session.query(Program).filter(query)
-        result = [ program_to_dict(p) for p in programs ]
+        result = [ program_to_jsondict(p) for p in programs ]
 
     session.close()
     return jsonify(result)
@@ -156,7 +158,7 @@ def search():
     with session.begin(subtransactions=True):
 
         programs = session.query(Program).filter(query)
-        result = [ program_to_dict(p) for p in programs ]
+        result = [ program_to_jsondict(p) for p in programs ]
 
     session.close()
     return jsonify(result)
