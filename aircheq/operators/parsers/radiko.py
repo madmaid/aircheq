@@ -66,7 +66,7 @@ def parse_guide(guide_xml):
         _person = prog.xpath("./pfm")[0].text
         person = _person if _person is not None else ""
 
-        info = '\n'.join([_info, desc, person])
+        info = '\n'.join((_info, desc, person,))
 
         # cast 
         start = datetime.datetime.strptime(prog.attrib['ft'], '%Y%m%d%H%M%S')
