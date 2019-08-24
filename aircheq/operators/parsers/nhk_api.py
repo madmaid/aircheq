@@ -14,9 +14,6 @@ NHK_NETRADIO_TO_SERVICES = {
 }
 
 
-class APIKeyError(Exception):
-    def __init__(self, message):
-        self.message = message
 def program_api(date):
     api = config.NHK_API_URL
     key = config.NHK_API_KEY
