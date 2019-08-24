@@ -15,12 +15,12 @@ class Recorder(object):
         # TODO: considering filename format from config
         # name_format = config.FIMENAME_FORMAT
 
-        formatter = "{channel}_{title}_{start:%Y%m%d_%H%M}"
-        name = formatter.format_map(vars(program))
-        validate = (lambda s: s.translate(str.maketrans(
+        FILENAME_TEMPLATE = "{channel}_{title}_{start:%Y%m%d_%H%M}"
+        name = FILENAME_TEMPLATE.format_map(vars(program))
+        validate = lambda s: s.translate(str.maketrans(
             # all puncts are replaced with underscore
             { punct: "_" for punct in string.punctuation + ' ' }
-        )))
+        ))
         
         filename = validate(name) 
 
