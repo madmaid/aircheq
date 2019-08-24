@@ -25,6 +25,9 @@ from .operators.parsers.model import Program
 engine = create_engine(config.GUIDE_DATABASE_URL, echo=False)
 Session = dbconfig.create_session(engine)
 
+# TODO: make this configable
+MONITOR_INTERVAL = 3 #sec
+
 def create_recorder(program):
     r = getattr(recorder, program.service)
     return r.Recorder(program)
@@ -41,8 +44,9 @@ def task():
         # Recording
         for p in session.query(Program).filter(criteria):
             by_start = p.start - datetime.datetime.now()
+            # start process before 3 secs from Program.start
+            if by_start < datetime.timedelta(seconds=MONITOR_INTERVAL):
 
-            if by_start < datetime.timedelta(seconds=3):
                 p.is_recorded = True
                 r = create_recorder(p)
 
@@ -58,7 +62,7 @@ def record_reserved():
     # initialize
     sch = sched.scheduler(time.time)
     # main loop
-    for dt in utils.time_intervals(datetime.timedelta(seconds=3)):
+    for dt in utils.time_intervals(datetime.timedelta(seconds=MONITOR_INTERVAL)):
         sch.enterabs(utils.datetime_to_time(dt), 1, task)
         sch.run()
 
