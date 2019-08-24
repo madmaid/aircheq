@@ -21,7 +21,7 @@ class Rule(Base):
 def str_criterion(rule):
     for attr, criteria in rule.__dict__.items():
         if type(criteria) == str and criteria != '':
-            yield getattr(Program, attr).contains(criteria)
+            yield getattr(Program, attr).like(criteria)
 
 def match(session, rule):
     query = session.query(Program)
