@@ -50,9 +50,14 @@ def parse_guide(guide_xml):
 
         elems = [] 
         for elem in broken_tree.iter():
-            elems.append(elem.tail) if elem.tail is not None else "" 
-            elems.append(elem.attrib["href"]) if "href" in elem.attrib.keys() else ""
-            elems.append(elem.text) if elem.text is not None else ""
+            if elem.tail is not None:
+                elems.append(elem.tail)
+
+            if elem.attrib.get("href") is not None:
+                elems.append(elem.attrib.get("href"))
+
+            if elem.text is not None:
+                elems.append(elem.text)
         _info = '\n'.join(elems)
 
         _desc = prog.xpath("./desc")[0].text
