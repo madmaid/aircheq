@@ -14,16 +14,16 @@ from sqlalchemy import or_, and_
 from sqlalchemy.engine import create_engine
 from sqlalchemy.orm import sessionmaker
 
-from . import config
 from .operators import reserve
 from .operators import crawler
 from .operators import utils
 from .operators import recorder
+from . import config, dbconfig
 from .operators.parsers import model
 from .operators.parsers.model import Program 
 
 engine = create_engine(config.GUIDE_DATABASE_URL, echo=False)
-Session = sessionmaker(bind=engine)
+Session = dbconfig.create_session(engine)
 
 def create_recorder(program):
     r = getattr(recorder, program.service)

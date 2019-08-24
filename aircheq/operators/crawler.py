@@ -16,9 +16,10 @@ from . import utils
 from .parsers import model
 from .parsers.model import Program
 from .. import config
+from .. import config, dbconfig
 
 engine = create_engine(config.GUIDE_DATABASE_URL, echo=False)
-Session = sessionmaker(bind=engine)
+Session = dbconfig.create_session(engine)
 logger = logging.getLogger("aircheq-crawler")
 
 def fetch_all():

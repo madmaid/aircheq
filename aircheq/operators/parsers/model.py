@@ -2,10 +2,9 @@
 import pytz
 import datetime
 
-from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy import Column, Integer, String, DateTime, Interval, Boolean
+from ...dbconfig import Base 
 
-Base = declarative_base()
 class APIKeyError(Exception):
     def __init__(self, message):
         self.message = message
