@@ -32,6 +32,30 @@ def program_api(date):
 
     return req.json()
 
+def parse_channel(json_dict):
+    """
+    partial_json_dict -> {"channel": "channel_jp"}
+    """
+
+    channel = NHK_NETRADIO_TO_SERVICES[json_dict['service']['id']]
+    channel_jp = json_dict['service']["name"] + json_dict['area']['name']
+    return { channel: channel_jp }
+
+
+def get_channels():
+    """
+    return {"channel": "channel_jp"}
+    """
+    _json = program_api(datetime.date.today())
+
+    channels = dict()
+    for programs in _json['list'].values():
+        # take first program in each channels from guide
+        channels.update(parse_channel(programs[0]))
+
+    return channels
+
+
 def json_to_program(json_dict):
 
     program = model.Program()

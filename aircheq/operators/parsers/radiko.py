@@ -9,26 +9,37 @@ from ... import config
 from .. import auth
 from . import model
 
+from ..utils import naive_to_JST
 
-def get_stations(radiko_auth=None):
+def parse_area_stations(stations_xml):
     """
-    return { station id: station_name }
+    str -> dict { station id: station_name }
     """
-    if radiko_auth is None:
-        radiko_auth = auth.RadikoAuth()
-
-    area_id = radiko_auth.get_area()
-    url = config.RADIKO_CHANNELS_FROM_AREA_URL.format(area_id=area_id)
-    raw_xml = requests.get(url)
-    stations_xml = lxml.etree.fromstring(raw_xml.content)
-
-    stations = {}
+    stations = dict()
     for station in stations_xml.xpath('/stations/station'):
         name = station.xpath('./name')[0].text
         station_id = station.xpath('./id')[0].text
         stations.update({station_id: name})
 
     return stations
+
+def get_channels(radiko_auth=None):
+    """
+    return dict {"channel": "channel_jp"}
+    """
+    if radiko_auth is None:
+        radiko_auth = auth.RadikoAuth()
+
+    area_id = radiko_auth.get_area()
+    #TODO: fetch all channels for premium
+    url = config.RADIKO_CHANNELS_FROM_AREA_URL.format(area_id=area_id)
+    raw_xml = requests.get(url)
+
+    raw_xml.raise_for_status()
+
+    return parse_area_stations(lxml.etree.fromstring(raw_xml.content))
+
+
 
 def parse_guide(guide_xml):
     parser_html = lxml.etree.HTMLParser()
@@ -42,7 +53,7 @@ def parse_guide(guide_xml):
         title = prog.xpath('./title')[0].text
         # main_title = prog.xpath('./title')[0].text
         # sub_title = prog.xpath('./sub_title')[0].text
-        # title = main_title + '_' + sub_title if sub_title is not None else main_title
+        # title = main_title + ' ' + (sub_title if sub_title is not None else "")
 
         # parse infomation
         info_html = prog.xpath('./info')[0].text
@@ -58,6 +69,7 @@ def parse_guide(guide_xml):
 
             if elem.text is not None:
                 elems.append(elem.text)
+
         _info = '\n'.join(elems)
 
         _desc = prog.xpath("./desc")[0].text
@@ -69,7 +81,8 @@ def parse_guide(guide_xml):
         info = '\n'.join((_info, desc, person,))
 
         # cast 
-        start = datetime.datetime.strptime(prog.attrib['ft'], '%Y%m%d%H%M%S')
+        _start= datetime.datetime.strptime(prog.attrib['ft'], '%Y%m%d%H%M%S')
+        start = naive_to_JST(_start)
         duration = datetime.timedelta(seconds=int(prog.attrib['dur']))
         end = start + duration
 
@@ -82,15 +95,17 @@ def parse_guide(guide_xml):
                 'start': start,
                 'end': end,
                 'info': info,
+                # "html": info_html,
                 'is_repeat': False,
                 'is_movie': False,
                 }
         yield program
 
 def get_programs(api=config.RADIKO_WEEKLY_FROM_CHANNEL_URL):
-    station_ids = get_stations()
+    station_ids = get_channels()
     for station_id in station_ids:
         req = requests.get(api.format(station_id=station_id))
+        req.raise_for_status()
 
         for d in parse_guide(req.content):
             yield model.dict_to_program(d)

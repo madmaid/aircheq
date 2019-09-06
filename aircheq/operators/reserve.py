@@ -1,11 +1,9 @@
 import logging
 
-from sqlalchemy import Column, Integer, String, Boolean, or_, and_
-from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy import (Column, Integer, String, Boolean, or_, and_)
 
 from .parsers.model import Program
-
-Base = declarative_base()
+from ..dbconfig import Base 
 
 class Rule(Base):
     __tablename__ = 'rules'
