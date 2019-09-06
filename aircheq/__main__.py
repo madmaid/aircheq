@@ -14,11 +14,11 @@ from sqlalchemy import or_, and_
 from sqlalchemy.engine import create_engine
 from sqlalchemy.orm import sessionmaker
 
-from . import config, dbconfig
-from .operators import reserve, crawler, utils, recorder
+
+from . import (config, dbconfig)
+from .operators import (reserve, crawler, utils, recorder)
 from .operators.parsers import model
-from .operators.parsers.model import (
-        Program, Service, Channel,)
+from .operators.parsers.model import (Program, Service, Channel)
 
 engine = create_engine(config.GUIDE_DATABASE_URL, echo=False)
 Session = dbconfig.create_session(engine)
@@ -99,6 +99,8 @@ def create_tables():
 
     if not table_exists(reserve.Rule):
         reserve.Base.metadata.create_all(bind=engine)
+
+
 
 def main():
     dbconfig.migrate_to_head(engine)
