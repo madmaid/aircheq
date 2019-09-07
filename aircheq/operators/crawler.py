@@ -150,7 +150,7 @@ def task_with_retry(max_count=5):
     for dt, count in zip(utils.time_intervals(retry_interval, first_time=now()), range(0, max_count)):
         sch.enterabs(utils.datetime_to_time(dt), 1, task)
         try:
-            sch.run(blocking=True)
+            sch.run()
         except Exception as e:
             logger.warning("retry: {}".format(traceback.format_exc()))
             continue    # retry
