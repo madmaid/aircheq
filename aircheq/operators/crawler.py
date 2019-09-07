@@ -140,7 +140,7 @@ def task():
     logger.info("Crawl finished")
 
     # reserve by rule
-    reserve.reserve_all(Session)
+    reserve.reserve_all()
     logger.info("Reservation Finished ")
 
 def task_with_retry(max_count=5):
