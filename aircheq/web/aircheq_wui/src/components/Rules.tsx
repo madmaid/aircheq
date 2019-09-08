@@ -99,7 +99,7 @@ const initialFetch: any = compose(
     }
   ),
   lifecycle({
-    componentWillMount() {
+    componentDidMount() {
       fetchRules()
         .then(json => json.map((r: IRule) => jsonToRule(r)))
         .then((this as any).props.setRules);
