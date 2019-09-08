@@ -2,7 +2,7 @@ import * as React from "react";
 import { match as Match, Link } from "react-router-dom";
 import styled from "styled-components";
 
-import moment from "moment";
+import * as moment from "moment";
 import "whatwg-fetch";
 
 import * as model from "../stores/program";
