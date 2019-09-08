@@ -144,11 +144,11 @@ class SearchForm extends React.Component<{}, State> {
   };
 }
 
-interface SearchResultProps {
+type Props = {
   result: Program[];
 }
 
-const SearchResult = (props: SearchResultProps) => (
+const SearchResult = (props: Props) => (
   <ProgContainer>
     {(() =>
       props.result.map((program: Program, i: number) => (

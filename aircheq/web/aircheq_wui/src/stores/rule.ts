@@ -50,7 +50,7 @@ const sendNewRule = (rule: IRule) => {
 const sendEdited = (rule: IRule) => {
   postRule("/api/change_rule.json", rule);
 };
-const sendDelete = (id: Number) => {
+const deleteRule = (id: Number) => {
   postRule("/api/delete_rule.json", { id });
 };
 export {
@@ -62,5 +62,5 @@ export {
   fetchRules,
   sendNewRule,
   sendEdited,
-  sendDelete
+  deleteRule
 };

@@ -12,7 +12,7 @@ import {
   fetchRules,
   sendNewRule,
   sendEdited,
-  sendDelete
+  deleteRule
 } from "../stores/rule";
 
 const RuleList = styled.ul`
