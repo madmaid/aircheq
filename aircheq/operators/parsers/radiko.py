@@ -1,26 +1,21 @@
 import itertools
+import io
 import datetime
 
 import lxml.etree
 import requests
 
+from ... import config
 from .. import auth
 from . import model
 
+from ..utils import naive_to_JST
 
-def get_stations(radiko_auth=None):
+def parse_area_stations(stations_xml):
     """
-    return { station id: station_name }
+    str -> dict { station id: station_name }
     """
-    if radiko_auth is None:
-        radiko_auth = auth.RadikoAuth()
-
-    area_id = radiko_auth.get_area()
-    url = 'http://radiko.jp/v2/station/list/' + area_id + '.xml'
-    raw_xml = requests.get(url)
-    stations_xml = lxml.etree.fromstring(raw_xml.content)
-
-    stations = {}
+    stations = dict()
     for station in stations_xml.xpath('/stations/station'):
         name = station.xpath('./name')[0].text
         station_id = station.xpath('./id')[0].text
@@ -28,36 +23,66 @@ def get_stations(radiko_auth=None):
 
     return stations
 
+def get_channels(radiko_auth=None):
+    """
+    return dict {"channel": "channel_jp"}
+    """
+    if radiko_auth is None:
+        radiko_auth = auth.RadikoAuth()
+
+    area_id = radiko_auth.get_area()
+    #TODO: fetch all channels for premium
+    url = config.RADIKO_CHANNELS_FROM_AREA_URL.format(area_id=area_id)
+    raw_xml = requests.get(url)
+
+    raw_xml.raise_for_status()
+
+    return parse_area_stations(lxml.etree.fromstring(raw_xml.content))
+
+
+
 def parse_guide(guide_xml):
+    parser_html = lxml.etree.HTMLParser()
+
     root = lxml.etree.fromstring(guide_xml)
 
     channel = root.xpath('//radiko/stations/station')[0].attrib['id']
     channel_jp = root.xpath('//radiko/stations/station/name')[0].text
     for prog in root.xpath('//progs/prog'):
 
-        main_title = prog.xpath('./title')[0].text
-        sub_title = prog.xpath('./sub_title')[0].text
-        title = main_title + '_' + sub_title if sub_title is not None else main_title
+        title = prog.xpath('./title')[0].text
+        # main_title = prog.xpath('./title')[0].text
+        # sub_title = prog.xpath('./sub_title')[0].text
+        # title = main_title + ' ' + (sub_title if sub_title is not None else "")
 
         # parse infomation
         info_html = prog.xpath('./info')[0].text
-        _info = info_html if info_html is not None else ""
-        #if info_html is not None:
-        #   _info = '\n'.join(_root.xpath('//text()'))
-        #   _root = lxml.html.fromstring(info_html)
-        #else:
-        #   _info = ''
+        broken_tree = lxml.etree.parse(io.StringIO(info_html), parser_html)
 
-        _desc = prog.xpath('./desc')[0].text
-        desc = _desc if _desc is not None else ''
+        elems = [] 
+        for elem in broken_tree.iter():
+            if elem.tail is not None:
+                elems.append(elem.tail)
 
-        _person = prog.xpath('./pfm')[0].text
-        person = _person if _person is not None else ''
+            if elem.attrib.get("href") is not None:
+                elems.append(elem.attrib.get("href"))
 
-        info = '\n'.join([_info, desc, person])
+            if elem.text is not None:
+                elems.append(elem.text)
+
+        _info = '\n'.join(elems)
+
+        _desc = prog.xpath("./desc")[0].text
+        desc = _desc if _desc is not None else ""
+
+        _person = prog.xpath("./pfm")[0].text
+        person = _person if _person is not None else ""
+
+        info = '\n'.join((_info, desc, person,))
 
         # cast 
-        start = datetime.datetime.strptime(prog.attrib['ft'], '%Y%m%d%H%M%S')
+        _start= datetime.datetime.strptime(prog.attrib['ft'], '%Y%m%d%H%M%S')
+        start = naive_to_JST(_start)
         duration = datetime.timedelta(seconds=int(prog.attrib['dur']))
         end = start + duration
 
@@ -70,15 +95,17 @@ def parse_guide(guide_xml):
                 'start': start,
                 'end': end,
                 'info': info,
+                # "html": info_html,
                 'is_repeat': False,
                 'is_movie': False,
                 }
         yield program
 
-def get_programs(api='http://radiko.jp/v2/api/program/station/weekly'):
-    station_ids = get_stations()
+def get_programs(api=config.RADIKO_WEEKLY_FROM_CHANNEL_URL):
+    station_ids = get_channels()
     for station_id in station_ids:
-        req = requests.get(api, params={ 'station_id': station_id })
+        req = requests.get(api.format(station_id=station_id))
+        req.raise_for_status()
 
         for d in parse_guide(req.content):
             yield model.dict_to_program(d)

@@ -28,6 +28,9 @@ def manual_reserve(program_id, switch=True):
 def fetch_guide():
     return session.query(Program).filter(Program.start > datetime.datetime.now()).order_by(Program.start)
 
+def fetch_reserved():
+    return session.query(Program).filter(Program.is_reserved == True).order_by(Program.start)
+
 def fetch_rules():
     return session.query(Rule).order_by(Rule.id)
 
@@ -58,6 +61,9 @@ def print_rules(peco=False):
                 peco=peco,
                 headers=list(Rule.__table__.columns.keys()),
                 )
+def print_reserved(peco=False):
+    programs = fetch_reserved()
+    print_table((format_program(p) for p in programs), peco=peco)
 
 def print_program(program_id):
     program = fetch_program_by_id(program_id)
@@ -89,9 +95,17 @@ def create_argparser():
     unreserve.add_argument('program_id', type=str)
     unreserve.set_defaults(func=lambda args: manual_reserve(args.program_id, False))
 
+    reserved = subparsers.add_parser('reserved', help='print reserved programs')
+    reserved.add_argument('--peco', action="store_true")
+    reserved.set_defaults(func=print_reserved)
+
     return root_parser
 
 if __name__ == "__main__":
     parser =  create_argparser()
     args = parser.parse_args()
-    args.func(args)
+    try:
+        args.func(args)
+    except AttributeError:
+        parser.print_usage()
+

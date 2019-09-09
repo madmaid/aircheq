@@ -6,7 +6,16 @@ import itertools
 import lxml.html
 import requests
 
+from ... import config
 from . import model
+
+from ..utils import naive_to_JST
+
+def get_channels():
+    """
+    return dict {"channel": "channel_jp"}
+    """
+    return {"agqr": "超 A&G"}
 
 def __col(col):
     yield col
@@ -75,7 +84,6 @@ def parse_guide(html):
 
 
             str_time = cell.xpath('./div[@class="time"]')[0].text.replace("\n", "")
-            is_boxed = re.search("頃", str_time) is not None
             str_hour, str_minute = re.search('(\d+):(\d+)', str_time).groups()
             if int(str_hour) > 23:
                 hour = abs(int(str_hour) - 24)
@@ -86,11 +94,11 @@ def parse_guide(html):
 
 
 
-            f = (lambda elem, expr:
+            get_href = (lambda elem, expr:
                     elem.xpath(expr)[0].attrib["href"] if elem.xpath(expr) != [] else ""
                 )
-            program_url = f(cell, './div[@class="title-p"]/a')
-            mail_to = f(cell, './div[@class="rp"]/a')
+            program_url = get_href(cell, './div[@class="title-p"]/a')
+            mail_to = get_href(cell, './div[@class="rp"]/a')
 
             person = "".join(cell.xpath('./div[@class="rp"]/text()')).replace("\n", "")
             info = '\n'.join([person, program_url, mail_to])
@@ -103,8 +111,9 @@ def parse_guide(html):
 
 
 
-            start = datetime.datetime.combine(date, time)
+            start = naive_to_JST(datetime.datetime.combine(date, time))
 
+            is_boxed = re.search("頃", str_time) is not None
             if is_boxed:
                 # CAUTION:
                 # if a boxed program strides over 0AM, this doesn't work correctly
@@ -120,21 +129,26 @@ def parse_guide(html):
                         'end': p['end'] + duration,
                     })
             else:
+                channel, channel_jp = tuple(get_channels().items())[0]
                 programs.append({
                         'service': 'agqr',
-                        'channel': 'agqr',
-                        'channel_jp': '超 A&G',
+                        'channel': channel,
+                        'channel_jp': channel_jp,
                         'title': title,
                         'start': start,
                         'end': start + duration,
                         'duration': duration,
                         'info': info,
+                        # "casts": person,
                         'is_repeat': is_repeat,
                         'is_movie': is_movie,
                 })
     return programs
 
-def get_programs(url='http://agqr.jp/timetable/streaming.html'):
+def get_programs(url=config.AGQR_GUIDE_URL):
     req = requests.get(url)
+    req.raise_for_status()
+
     for dic in parse_guide(req.content):
         yield model.dict_to_program(dic)
+

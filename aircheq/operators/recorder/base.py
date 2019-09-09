@@ -15,19 +15,18 @@ class Recorder(object):
         # TODO: considering filename format from config
         # name_format = config.FIMENAME_FORMAT
 
-        formatter = "{channel}_{title}_{start:%Y%m%d_%H%M}"
-        name = formatter.format_map(vars(program))
-        validate = (lambda s:
+        FILENAME_TEMPLATE = "{channel}_{title}_{start:%Y%m%d_%H%M}"
+        name = FILENAME_TEMPLATE.format_map(vars(program))
+        validate = lambda s: s.translate(str.maketrans(
             # all puncts are replaced with underscore
-            s.translate( {punct: "_" for punct in string.punctuation} ).replace(" ", "_")
-        )
-        valid_name = validate(name) 
-        filename = valid_name + ".flv"
-
+            { punct: "_" for punct in string.punctuation + ' ' }
+        ))
+        
+        filename = validate(name) 
 
         # TODO: replace os.path with pathlib
-        if os.path.exists(os.path.abspath(config.SAVE_DIR)):
-            save_path = config.SAVE_DIR
+        if os.path.exists(os.path.abspath(config.RECORDED_DIR)):
+            save_path = config.RECORDED_DIR
         else:
             # TODO: change default directory
             save_path = './'

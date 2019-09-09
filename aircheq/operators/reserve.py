@@ -1,11 +1,14 @@
 import logging
 
-from sqlalchemy import Column, Integer, String, Boolean, or_, and_
-from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy import (Column, Integer, String, Boolean, or_, and_)
+from sqlalchemy.engine import create_engine
 
 from .parsers.model import Program
+from .. import (config, dbconfig)
+from ..dbconfig import Base 
 
-Base = declarative_base()
+engine = create_engine(config.GUIDE_DATABASE_URL, echo=False)
+Session = dbconfig.create_session(engine)
 
 class Rule(Base):
     __tablename__ = 'rules'
@@ -32,7 +35,7 @@ def match(session, rule):
     else:
         return query.filter_by(is_repeat=False).filter(new_query)
 
-def reserve_all(Session):
+def reserve_all():
     logger = logging.getLogger("aircheq-crawler")
     session = Session(autocommit=True)
     with session.begin():

@@ -10,13 +10,8 @@
     "outDir": "./lib",
     "jsx": "react",
     "allowSyntheticDefaultImports": true,
-    "types": [
-      "node"
-    ],
-    "typeRoots": [
-      "../node_modules",
-      "../node_modules/@types"
-    ]
+    "moduleResolution": "node",
+    "typeRoots": ["../node_modules", "../node_modules/@types"]
   },
   "compileOnSave": false
 }

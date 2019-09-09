@@ -7,11 +7,14 @@ from flask import Flask, jsonify, request, render_template
 from flask.json import JSONEncoder
 from sqlalchemy import or_, and_
 from sqlalchemy.engine import create_engine
-from sqlalchemy.orm import sessionmaker
+from sqlalchemy.orm import scoped_session, sessionmaker
 
-from .. import config
-from ..operators.parsers import model
-from ..operators.parsers.model import Program
+from .. import config, dbconfig
+from ..operators.parsers.model import (
+        Program,
+        Service,
+        Channel,
+)
 from ..operators import reserve
 
 # directory config
@@ -41,12 +44,12 @@ app.json_encoder = ISOFormatDateTimeJSONEncoder
 
 
 engine = create_engine(config.GUIDE_DATABASE_URL, echo=True)
-Session = sessionmaker(bind=engine)
+Session = dbconfig.create_session(engine)
 
 def strip_underscore_attr(model_vars):
     return { k : v for k, v in model_vars.items() if not k.startswith("_")}
 
-def program_to_dict(program):
+def program_to_jsondict(program):
     p = vars(program)
 
     p['duration'] = int(program.duration.total_seconds() * 1000)
@@ -80,7 +83,7 @@ def all():
         programs = session.query(Program).order_by(Program.id)
 
     session.close()
-    return jsonify([ program_to_dict(p) for p in programs ])
+    return jsonify([ program_to_jsondict(p) for p in programs ])
 
 @app.route('/api/guide.json', methods=['GET'])
 def guide():
@@ -98,12 +101,13 @@ def guide():
             query = and_(Program.channel == chan, Program.end > datetime.datetime.now())
             programs = session.query(Program).filter(query).order_by(Program.start)
 
-            name_jp = list(set(p.channel_jp for p in programs))[0]
-            _json.append({
-                    'name': chan,
-                    'name_jp': name_jp,
-                    'programs': [ program_to_dict(p) for p in programs ]
-            })
+            if programs != []:
+                name_jp = list(set(p.channel_jp for p in programs))[0]
+                _json.append({
+                        'name': chan,
+                        'name_jp': name_jp,
+                        'programs': [ program_to_jsondict(p) for p in programs ]
+                })
 
         session.close()
     return jsonify(_json)
@@ -115,31 +119,36 @@ def program_by_id():
     with session.begin(subtransactions=True):
 
         program = session.query(Program).filter_by(id=program_id).one()
-        result = program_to_dict(program)
+        result = program_to_jsondict(program)
+
     session.close()
     return jsonify(result)
 
-@app.route('/api/reserve.json', methods=['POST'])
-def toggle_reserve():
+@app.route('/api/toggle_reserve.json', methods=['POST'])
+def toggle_manual_reserve():
     program_id = request.json.get('id', None)
     session = Session(autocommit=True)
     with session.begin(subtransactions=True):
 
         program = session.query(Program).filter_by(id=program_id).one()
-        program.is_reserved = not program.is_reserved
+        program.is_manual_reserved = not program.is_manual_reserved
+
 
     session.close()
     return jsonify({"res": "done"})
 
 @app.route('/api/reserved.json', methods=['GET'])
 def get_reserved():
-    query = and_(Program.is_reserved==True, Program.start > datetime.datetime.now())
+    query = and_(or_(Program.is_reserved==True,
+        Program.is_manual_reserved==True),
+        Program.start >  datetime.datetime.now()
+    )
 
     session = Session(autocommit=True)
     with session.begin(subtransactions=True):
 
         programs = session.query(Program).filter(query)
-        result = [ program_to_dict(p) for p in programs ]
+        result = [ program_to_jsondict(p) for p in programs ]
 
     session.close()
     return jsonify(result)
@@ -156,7 +165,7 @@ def search():
     with session.begin(subtransactions=True):
 
         programs = session.query(Program).filter(query)
-        result = [ program_to_dict(p) for p in programs ]
+        result = [ program_to_jsondict(p) for p in programs ]
 
     session.close()
     return jsonify(result)
@@ -209,7 +218,7 @@ def change_rule():
     session.close()
     return jsonify({'res': 'Done'})
 
-@app.route('/api/delete_rule.json', methods=['POST'])
+@app.route("/api/delete_rule.json", methods=["POST"])
 def delete_rule():
     _json = request.json
 
@@ -221,10 +230,9 @@ def delete_rule():
 
     session.close()
     return jsonify({'res': 'Done'})
-        
+
 def main():
     app.run()
-    return app
 
 if __name__ == "__main__":
     main()

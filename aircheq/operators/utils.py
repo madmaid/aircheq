@@ -5,6 +5,8 @@ import logging
 import collections
 import pathlib
 
+import pytz
+
 from .. import config
 
 LOG_FORMAT = logging.Formatter("{asctime} - {levelname:8s} - {message}", style="{")
@@ -55,3 +57,10 @@ def time_intervals(timedelta, first_time=None):
     while True:
         exec_time += timedelta
         yield exec_time
+
+def naive_to_JST(dt):
+    return pytz.timezone("Asia/Tokyo").localize(dt)
+
+def jst_now():
+    return datetime.datetime.now(tz=pytz.timezone("Asia/Tokyo"))
+
