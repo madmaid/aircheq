@@ -1,1 +1,2 @@
-import aircheq.web
+from .__main__ import app
+
