@@ -24,7 +24,7 @@ const DetailLink = styled(Link)`
 `;
 
 type DetailParams = {
-  id: number;
+  id: string;
 };
 type DetailProps = {
   match?: Match<DetailParams>;
@@ -60,7 +60,7 @@ class Detail extends React.Component<DetailParams, State> {
     this.setProgram();
   }
   setProgram() {
-    this.fetchProgram(this.props.id).then(program => {
+    this.fetchProgram(Number(this.props.id)).then(program => {
       this.setState({ program: program });
     });
   }
