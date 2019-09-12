@@ -1,4 +1,4 @@
-import * as React from "react";
+import React from "react";
 import { compose, withState, withHandlers, ComponentEnhancer } from "recompose";
 
 import { Input, InputForm, SendButton } from "./FormUtil";

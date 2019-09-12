@@ -1,4 +1,4 @@
-import * as React from "react";
+import React from "react";
 import * as Modal from "react-modal";
 import { match as Match, Link, Redirect } from "react-router-dom";
 import styled from "styled-components";
@@ -146,7 +146,7 @@ class SearchForm extends React.Component<{}, State> {
 
 type Props = {
   result: Program[];
-}
+};
 
 const SearchResult = (props: Props) => (
   <ProgContainer>

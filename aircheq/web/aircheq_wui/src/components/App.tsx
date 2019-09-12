@@ -1,4 +1,4 @@
-import * as React from "react";
+import React from "react";
 import { BrowserRouter as _Router, Route, Link } from "react-router-dom";
 import styled from "styled-components";
 

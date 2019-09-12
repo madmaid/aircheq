@@ -1,7 +1,7 @@
-import * as React from "react";
+import React from "react";
 import styled from "styled-components";
 
-import * as moment from "moment";
+import moment from "moment";
 
 import { DetailLink } from "./ProgramDetail";
 import * as model from "../stores/program";

@@ -1,6 +1,6 @@
-import * as React from "react";
+import React from "react";
 import styled from "styled-components";
-import * as ReactModal from "react-modal";
+import ReactModal from "react-modal";
 
 const Modal: React.SFC<any> = (props: any) => {
   const style = {
