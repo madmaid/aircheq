@@ -3,12 +3,12 @@ var path = require("path");
 const isProduction = process.env.NODE_ENV === "production";
 
 var babelOptions = {
-  "presets": [
+  presets: [
     "react",
     [
       "es2015",
       {
-        "modules": false
+        modules: false
       }
     ]
   ]
@@ -42,21 +42,20 @@ function tsModule() {
         ]
       }
     ]
-
   };
 }
 
 module.exports = {
   mode: "development",
   entry: {
-    main: "./src/index.tsx",
+    main: "./src/index.tsx"
   },
   output: {
-    path: path.resolve(__dirname, 'dist'),
-    filename: 'bundle.js',
+    path: path.resolve(__dirname, "dist"),
+    filename: "bundle.js"
   },
   devServer: {
-    publicPath: '/dist/',
+    publicPath: "/dist/",
     proxy: {
       "/api/*": {
         target: "http://localhost:5000"
@@ -66,7 +65,7 @@ module.exports = {
     inline: true
   },
   resolve: {
-    extensions: ['.ts', '.tsx', ".js"]
+    extensions: [".ts", ".tsx", ".js"]
   },
   module: tsModule()
 };
