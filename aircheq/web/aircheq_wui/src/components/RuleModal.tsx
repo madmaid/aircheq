@@ -8,6 +8,8 @@ import {
 } from "recompose";
 
 import RuleEditor from "./RuleEditor";
+import { Modal, ModalAttr } from "./ModalUtil";
+
 import OpenButton from "./buttons/OpenButton";
 import CloseButton from "./buttons/CloseButton";
 
@@ -40,11 +42,6 @@ const handleToggle: any = compose(
     }
   )
 );
-const ModalAttr = styled.div`
-  margin-left: 5px;
-  margin-right: 5px;
-  flex: 1;
-`;
 type Props = RuleProps &
   HandlerOuterProps & {
     indication: string;
