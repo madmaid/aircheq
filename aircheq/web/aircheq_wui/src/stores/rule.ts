@@ -37,24 +37,21 @@ const validate = (rule: IRule) => {
 };
 const fetchRules = () => fetch("/api/rules.json").then(res => res.json());
 
-const postRule = (url: string, body: Object) => {
+const postRule = (url: string, body: Object) =>
   fetch(url, {
     method: "POST",
     headers: {
       "Content-Type": "application/json"
     },
     body: JSON.stringify(body)
-  });
-};
-const sendNewRule = (rule: IRule) => {
-  postRule("/api/add_rule.json", rule);
-};
-const sendEdited = (rule: IRule) => {
-  postRule("/api/change_rule.json", rule);
-};
-const deleteRule = (id: Number) => {
-  postRule("/api/delete_rule.json", { id });
-};
+  }).then(res => res.json());
+
+const sendNewRule = (rule: INewRule) =>
+  postRule("/api/add_rule.json", rule).then(json_ => json_.map(jsonToRule));
+
+const sendEdited = (rule: IRule) => postRule("/api/change_rule.json", rule);
+
+const deleteRule = (id: Number) => postRule("/api/delete_rule.json", { id });
 export {
   IRule,
   INewRule,
