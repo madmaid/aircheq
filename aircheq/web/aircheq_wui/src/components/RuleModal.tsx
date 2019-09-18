@@ -53,10 +53,8 @@ const RuleModal: React.SFC<Props> = props => {
       <OpenButton onClick={open}>{indication}</OpenButton>
       <Modal
         isOpen={isOpen}
-        contentLabel={rule.id == null ? "new" : rule.id.toString()}
-        onRequestClose={() => {
-          close();
-        }}
+        contentLabel={rule.id == undefined ? "new" : rule.id.toString()}
+        onRequestClose={close}
       >
         <RuleEditor rule={rule} send={send} closeModal={close} />
         <CloseButton onClick={close}>キャンセル</CloseButton>
