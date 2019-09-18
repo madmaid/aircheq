@@ -23,10 +23,3 @@ const Modal: React.SFC<ReactModal.Props> = props => {
 
   return <ReactModal {...props} style={_style} />;
 };
-const OpenButton = styled.button``;
-const CloseButton = styled.button`
-  position: absolute;
-  right: 20px;
-  bottom: 20px;
-`;
-export { Modal, OpenButton, CloseButton };

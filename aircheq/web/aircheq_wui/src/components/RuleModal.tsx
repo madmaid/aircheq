@@ -8,7 +8,8 @@ import {
 } from "recompose";
 
 import RuleEditor from "./RuleEditor";
-import { Modal, OpenButton, CloseButton } from "./ModalUtil";
+import OpenButton from "./buttons/OpenButton";
+import CloseButton from "./buttons/CloseButton";
 
 import { RuleProps } from "../stores/rule";
 
