@@ -1,6 +1,5 @@
 import "whatwg-fetch";
-type IRule = {
-  id: string | null;
+type INewRule = {
   service: string;
   channel: string;
   title: string;
@@ -10,13 +9,16 @@ type IRule = {
   encode: boolean;
 };
 
+type IRule = INewRule & {
+  id: number;
+};
+
 type RuleProps = {
   rule: IRule;
   send: (rule: IRule) => void;
 };
 
-const initRuleState: IRule = {
-  id: null,
+const initRuleState: INewRule = {
   service: "",
   channel: "",
   title: "",
@@ -55,7 +57,7 @@ const deleteRule = (id: Number) => {
 };
 export {
   IRule,
-  //  Rule,
+  INewRule,
   RuleProps,
   initRuleState,
   jsonToRule,
