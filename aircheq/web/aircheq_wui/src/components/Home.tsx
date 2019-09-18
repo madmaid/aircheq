@@ -1,25 +1,24 @@
-import * as React from "react"
-import styled from "styled-components"
+import React from "react";
+import styled from "styled-components";
 
-import Reserved from "./Reserved"
+import Reserved from "./Reserved";
 
 const HomeContainer = styled.div`
-    padding: 0;
-`
+  padding: 0;
+`;
 const ReservedIndex = styled.div`
-    font-size: 20px;
-    padding: 0;
-    margin: 0;
-    color: white;
-    background: #60bde5;
-`
+  font-size: 20px;
+  padding: 0;
+  margin: 0;
+  color: white;
+  background: #60bde5;
+`;
 
-const Home = () =>
-<HomeContainer>
+const Home = () => (
+  <HomeContainer>
     <ReservedIndex>予約済</ReservedIndex>
     <Reserved />
-</HomeContainer>
+  </HomeContainer>
+);
 
-export {
-    Home as default,
-}
+export default Home;

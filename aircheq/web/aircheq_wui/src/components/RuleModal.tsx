@@ -1,4 +1,4 @@
-import * as React from "react";
+import React from "react";
 import {
   compose,
   withStateHandlers,
@@ -6,10 +6,12 @@ import {
   StateHandler,
   withHandlers
 } from "recompose";
-import styled from "styled-components";
 
 import RuleEditor from "./RuleEditor";
-import { Modal, OpenButton, CloseButton } from "./ModalUtil";
+import { Modal, ModalAttr } from "./ModalUtil";
+
+import OpenButton from "./buttons/OpenButton";
+import CloseButton from "./buttons/CloseButton";
 
 import { RuleProps } from "../stores/rule";
 
@@ -40,11 +42,6 @@ const handleToggle: any = compose(
     }
   )
 );
-const ModalAttr = styled.div`
-  margin-left: 5px;
-  margin-right: 5px;
-  flex: 1;
-`;
 type Props = RuleProps &
   HandlerOuterProps & {
     indication: string;
@@ -56,10 +53,8 @@ const RuleModal: React.SFC<Props> = props => {
       <OpenButton onClick={open}>{indication}</OpenButton>
       <Modal
         isOpen={isOpen}
-        contentLabel={rule.id == null ? "new" : rule.id.toString()}
-        onRequestClose={() => {
-          close();
-        }}
+        contentLabel={rule.id == undefined ? "new" : rule.id.toString()}
+        onRequestClose={close}
       >
         <RuleEditor rule={rule} send={send} closeModal={close} />
         <CloseButton onClick={close}>キャンセル</CloseButton>

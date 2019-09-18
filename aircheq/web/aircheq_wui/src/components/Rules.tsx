@@ -1,11 +1,12 @@
-import * as React from "react";
-import { compose, withStateHandlers, mapProps, lifecycle } from "recompose";
+import React, { useState, useEffect } from "react";
 import styled from "styled-components";
 
 import RuleModal from "./RuleModal";
+import RuleDelete from "./RuleDelete";
 
 import {
   IRule,
+  INewRule,
   initRuleState,
   RuleProps,
   jsonToRule,
@@ -69,13 +70,15 @@ const RuleIndices = () => (
     <RuleIndex>encode</RuleIndex>
     <RuleIndex>repeat</RuleIndex>
     <RuleIndex>Open Editor</RuleIndex>
+    <RuleIndex>Delete</RuleIndex>
   </RuleIndexContainer>
 );
 
-type Props = RuleProps & {
-  index: number;
+type ItemProps = RuleProps & {
+  index: number | string;
+  del: (id: Number) => void;
 };
-const RuleItem = ({ index, rule, send }: Props) => (
+const RuleItem = ({ index, rule, send, del }: ItemProps) => (
   <RuleContainer key={index}>
     <RuleId>{rule.id}</RuleId>
     <RuleAttr>{rule.service}</RuleAttr>
@@ -85,43 +88,40 @@ const RuleItem = ({ index, rule, send }: Props) => (
     <RuleAttr>{rule.encode ? "する" : "しない"}</RuleAttr>
     <RuleAttr>{rule.repeat ? "含む" : ""}</RuleAttr>
     <RuleModal rule={rule} send={send} indication={"編集する"} />
+    <RuleDelete rule={rule} onAccept={del} />
   </RuleContainer>
 );
-const initialFetch: any = compose(
-  withStateHandlers<{ rules: IRule[] }, any, any>(
-    {
-      rules: []
-    },
-    {
-      setRules: () => (data: IRule[]) => ({
-        rules: data
-      })
-    }
-  ),
-  lifecycle({
-    componentDidMount() {
-      fetchRules()
-        .then(json => json.map((r: IRule) => jsonToRule(r)))
-        .then((this as any).props.setRules);
-    }
-  })
-);
 
-const Rules = (props: any) => (
-  <RulesContainer>
-    <RuleIndices />
-    <RuleList>
-      {(() =>
-        //FIXME: index should be unique
-        props.rules.map((rule: IRule, i: number) => (
-          <RuleItem index={i} rule={rule} send={sendEdited} />
-        )))()}
-    </RuleList>
-    <RuleModal
-      rule={initRuleState}
-      send={sendNewRule}
-      indication={"新しいルールを作成する"}
-    />
-  </RulesContainer>
-);
-export default initialFetch(Rules);
+function Rules() {
+  const [rules, setRules] = useState([]);
+  const _fetchRules = () => {
+    fetchRules().then(rs => {
+      setRules(rs);
+    });
+  };
+  useEffect(() => {
+    _fetchRules();
+  }, []);
+  return (
+    <RulesContainer>
+      <RuleIndices />
+      <RuleList>
+        {(() =>
+          rules.map((rule: IRule, i: number) => (
+            <RuleItem
+              index={"rule-item-" + i}
+              rule={rule}
+              send={(rule: IRule) => sendEdited(rule).then(setRules)}
+              del={(id: Number) => deleteRule(id).then(setRules)}
+            />
+          )))()}
+      </RuleList>
+      <RuleModal
+        rule={initRuleState}
+        send={(rule: INewRule) => sendNewRule(rule).then(setRules)}
+        indication={"新しいルールを作成する"}
+      />
+    </RulesContainer>
+  );
+}
+export default Rules;

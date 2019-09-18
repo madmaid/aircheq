@@ -1,8 +1,8 @@
-import * as React from "react";
+import React from "react";
 import { match as Match, Link } from "react-router-dom";
 import styled from "styled-components";
 
-import * as moment from "moment";
+import moment from "moment";
 import "whatwg-fetch";
 
 import * as model from "../stores/program";
@@ -24,7 +24,7 @@ const DetailLink = styled(Link)`
 `;
 
 type DetailParams = {
-  id: number;
+  id: string;
 };
 type DetailProps = {
   match?: Match<DetailParams>;
@@ -60,7 +60,7 @@ class Detail extends React.Component<DetailParams, State> {
     this.setProgram();
   }
   setProgram() {
-    this.fetchProgram(this.props.id).then(program => {
+    this.fetchProgram(Number(this.props.id)).then(program => {
       this.setState({ program: program });
     });
   }

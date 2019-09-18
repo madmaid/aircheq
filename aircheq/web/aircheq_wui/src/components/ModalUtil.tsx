@@ -1,19 +1,31 @@
-import * as React from "react";
+import React from "react";
 import styled from "styled-components";
-import * as ReactModal from "react-modal";
+import ReactModal from "react-modal";
 
-const Modal: React.SFC<any> = (props: any) => {
-  const style = {
-    overlay: {
-      backgroundColor: "rgba(0, 0, 0, 0.75)"
-    }
-  };
-  return <ReactModal {...props} style={style} />;
-};
-const OpenButton = styled.button``;
-const CloseButton = styled.button`
-  position: absolute;
-  right: 20px;
-  bottom: 20px;
+const ModalAttr = styled.div`
+  margin-left: 5px;
+  margin-right: 5px;
+  flex: 1;
 `;
-export { Modal, OpenButton, CloseButton };
+const Modal: React.SFC<ReactModal.Props> = props => {
+  const defaultBGColor = "rgba(0, 0, 0, 0.75)";
+  const defaultOverlay = {
+    backgroundColor: defaultBGColor
+  };
+  const defaultStyle = {
+    overlay: defaultOverlay
+  };
+
+  // override transparency
+  let _style = props.style;
+  if (_style == undefined) {
+    _style = defaultStyle;
+  } else if (_style.overlay == undefined) {
+    _style.overlay = defaultOverlay;
+  } else if (_style.overlay.backgroundColor == undefined) {
+    _style.overlay.backgroundColor = defaultBGColor;
+  }
+
+  return <ReactModal {...props} style={_style} />;
+};
+export { Modal, ModalAttr };

@@ -196,9 +196,10 @@ def add_rule():
         matches = reserve.match(session, rule)
         for program in matches:
             program.is_reserved = True
+        result = session.query(reserve.Rule).all()
 
     session.close()
-    return jsonify({'res': 'Done'})
+    return jsonify([strip_underscore_attr(vars(r)) for r in result])
 
 @app.route('/api/change_rule.json', methods=['POST'])
 def change_rule():
@@ -215,8 +216,10 @@ def change_rule():
         for program in matches:
             program.is_reserved = True
 
+        result = session.query(reserve.Rule).all()
+
     session.close()
-    return jsonify({'res': 'Done'})
+    return jsonify([strip_underscore_attr(vars(r)) for r in result])
 
 @app.route("/api/delete_rule.json", methods=["POST"])
 def delete_rule():
@@ -225,11 +228,13 @@ def delete_rule():
     session = Session(autocommit=True)
     with session.begin(subtransactions=True):
 
-        session.query(reserve.Rule).filter_by(id=_json.pop("id")).one().delete()
+        rule = session.query(reserve.Rule).filter_by(id=_json.pop("id")).one()
+        session.delete(rule)
+
+        result = session.query(reserve.Rule).all()
 
     session.close()
-    return jsonify({"res": "Done"})
-
+    return jsonify([strip_underscore_attr(vars(r)) for r in result])
 
 def main():
     app.run()
