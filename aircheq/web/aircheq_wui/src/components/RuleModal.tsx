@@ -6,7 +6,6 @@ import {
   StateHandler,
   withHandlers
 } from "recompose";
-import styled from "styled-components";
 
 import RuleEditor from "./RuleEditor";
 import { Modal, OpenButton, CloseButton } from "./ModalUtil";

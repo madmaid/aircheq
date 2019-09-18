@@ -15,7 +15,6 @@ import {
   ProgReserved
 } from "./ProgramList";
 import { DetailLink } from "./ProgramDetail";
-import { OpenButton, CloseButton } from "./ModalUtil";
 import { Input, InputForm, SendButton } from "./FormUtil";
 
 import { Program, jsonToProgram } from "../stores/program";
