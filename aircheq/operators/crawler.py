@@ -143,8 +143,7 @@ def task():
     reserve.reserve_all()
     logger.info("Reservation Finished ")
 
-def task_with_retry(max_count=5):
-    retry_interval = datetime.timedelta(seconds=300) # 5min
+def task_with_retry(max_count=5, retry_interval=datetime.timedelta(seconds=300)):
     now = utils.jst_now
     sch = sched.scheduler(time.time)
     for dt, count in zip(utils.time_intervals(retry_interval, first_time=now()), range(0, max_count)):
