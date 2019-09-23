@@ -34,19 +34,21 @@ def record(recorder, program):
 
     session = Session(autocommit=True)
     with session.begin():
-        session.add(program)
+        _program = session.merge(program)
+        session.add(_program)
 
-        program.is_recording = True
+        _program.is_recording = True
     session.close()
 
     recorder.record()
 
     session = Session(autocommit=True)
     with session.begin():
-        session.add(program)
+        _program = session.merge(program)
+        session.add(_program)
 
-        program.is_recording = False
-        program.is_recorded = True
+        _program.is_recording = False
+        _program.is_recorded = True
     session.close()
 
 def task():
@@ -57,6 +59,11 @@ def task():
             Program.is_recorded == False,
             Program.is_recording == False,
             Program.is_manual_reserved == False
+        ), 
+        and_(
+            Program.is_recorded == False,
+            Program.is_recording == False,
+            Program.is_manual_reserved == True
 
         ), 
     )
