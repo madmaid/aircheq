@@ -110,11 +110,17 @@ def persist_all_programs():
         logger.warning("Skipped adding programs to DB: No resources found")
         return
 
-    inserted = tuple(p for p in programs if p.end > utils.jst_now())
+    future_programs = tuple(p for p in programs if p.start > utils.jst_now())
+    now_onair = tuple(p for p in programs if p.start < utils.jst_now() and p.end > utils.jst_now())
+
+    is_recording = lambda p, targets: any(p.is_same_with(r) for r in targets)
+
     session = Session(autocommit=True)
     with session.begin():
+        programs_in_recording = session.query(Program).filter_by(is_recording=True)
 
-        session.add_all(inserted)
+        session.add_all(p for p in now_onair if not is_recording(p, programs_in_recording))
+        session.add_all(future_programs)
 
     session.close()
 
@@ -122,7 +128,10 @@ def delete_unused_programs():
     del_session = Session(autocommit=True)
     with del_session.begin():
 
-        del_session.query(Program).filter_by(is_recorded=False).delete()
+        # save recording and recoded programs, delete otherwise
+        del_session.query(Program).filter_by(
+                is_recorded=False,
+                is_recording=False).delete()
 
     del_session.close()
 

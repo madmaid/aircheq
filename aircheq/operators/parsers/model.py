@@ -54,6 +54,15 @@ class Program(Base):
         for k,v in dic.items():
             setattr(program, k, v)
         return program
+
+    def is_same_with(self, the_other):
+        return is_same_program(self, the_other)
+
+def is_same_program(program_a, program_b):
+    left, right = program_a, program_b
+    attributes = ("service", "channel", "start", "end", "title")
+
+    return all(getattr(left, attr) == getattr(right, attr) for attr in attributes)
         
 def dict_to_program(dic):
     program = Program()
