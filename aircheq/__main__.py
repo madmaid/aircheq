@@ -37,7 +37,10 @@ def record(recorder, program):
         _program = session.merge(program)
         session.add(_program)
 
+        _program.is_reserved = False
         _program.is_recording = True
+        _program.is_recorded = False
+
     session.close()
 
     recorder.record()
@@ -47,9 +50,12 @@ def record(recorder, program):
         _program = session.merge(program)
         session.add(_program)
 
-        _program.is_recording = False
+
         _program.is_recorded = True
+        _program.is_recording = False
+        _program.is_reserved = False
     session.close()
+
 
 def task():
     logger = getLogger("aircheq-recorder")
