@@ -70,22 +70,24 @@ def task():
     session = Session(autocommit=True)
     with session.begin():
 
-        # Recording
-        for p in session.query(Program).filter(criteria):
-            by_start = p.start - datetime.datetime.now()
-            # start process before 3 secs from Program.start
-            if by_start < datetime.timedelta(seconds=MONITOR_INTERVAL):
+        reserved = session.query(Program).filter(criteria).all()
 
-
-                r = create_recorder(p)
-
-                process = multiprocessing.Process(target=record, args=(r, p), name=p.id)
-
-                msg = "Create Process: {}, {}".format(process, p.service)
-                logger.info(msg)
-
-                process.start()
     session.close()
+    # Recording
+    for p in reserved:
+        by_start = p.start - datetime.datetime.now()
+        # start process before 3 secs from Program.start
+        if by_start < datetime.timedelta(seconds=MONITOR_INTERVAL):
+
+
+            r = create_recorder(p)
+
+            process = multiprocessing.Process(target=record, args=(r, p), name=p.id)
+
+            msg = "Create Process: {}, {}".format(process, p.service)
+            logger.info(msg)
+
+            process.start()
 
 def record_reserved():
     # initialize
