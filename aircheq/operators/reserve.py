@@ -4,6 +4,7 @@ from sqlalchemy import (Column, Integer, String, Boolean, or_, and_)
 from sqlalchemy.engine import create_engine
 
 from .parsers.model import Program
+from .utils import jst_now
 from .. import (config, dbconfig)
 from ..dbconfig import Base 
 
@@ -27,20 +28,23 @@ def str_criterion(rule):
             yield getattr(Program, attr).contains(criteria)
 
 def match(session, rule):
-    query = session.query(Program)
-    new_query = and_(*str_criterion(rule))
+    reserve_targets = and_(Program.end > jst_now(),
+                Program.is_recording == False,
+                Program.is_recorded == False)
+    programs = session.query(Program).filter(reserve_targets)
+    query = and_(*str_criterion(rule))
 
     if rule.repeat:
-        return query.filter(new_query)
+        return programs.filter(query)
     else:
-        return query.filter_by(is_repeat=False).filter(new_query)
+        return programs.filter_by(is_repeat=False).filter(query)
 
 def reserve_all():
     logger = logging.getLogger("aircheq-crawler")
     session = Session(autocommit=True)
     with session.begin():
         for rule in session.query(Rule).order_by(Rule.id):
-            for program in match(session, rule).all():
+            for program in match(session, rule):
                 program.is_reserved = True
                 logger.info("Reserved: {p.id} {p.channel} {p.start}".format(p=program))
     session.close()
