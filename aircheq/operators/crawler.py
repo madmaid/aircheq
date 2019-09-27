@@ -7,7 +7,7 @@ import traceback
 
 
 from requests import HTTPError
-from sqlalchemy import and_
+from sqlalchemy import (and_, or_)
 from sqlalchemy.engine import create_engine
 
 from . import parsers
@@ -111,30 +111,59 @@ def persist_all_programs():
         logger.warning("Skipped adding programs to DB: No resources found")
         return
 
-    future_programs = tuple(p for p in programs if p.start > utils.jst_now())
-    now_onair = tuple(p for p in programs if p.start < utils.jst_now() and p.end > utils.jst_now())
+    now = jst_now()
 
-    is_recording = lambda p, targets: any(p.is_same_with(r) for r in targets)
+    # gonna be recording soon
+    gonna_record = and_(
+            Program.is_reserved == True,
+            Program.start < now,
+            Program.end > now
+    )
+    criteria = or_(Program.is_recording == True, gonna_record)
+
+    future_programs = tuple(p for p in programs if p.start > now)
+    now_onair = tuple(p for p in programs if p.start < now and p.end > now)
+
+
+    has_same = lambda targets, p: any(p.is_same_with(r) for r in targets)
 
     session = Session(autocommit=True)
     with session.begin():
-        programs_in_recording = session.query(Program).filter_by(is_recording=True)
+        recordings = session.query(Program).filter(criteria)
+        non_recordings = tuple(p for p in now_onair if not has_same(recordings, p))
 
-        session.add_all(p for p in now_onair if not is_recording(p, programs_in_recording))
+        session.add_all(non_recordings)
         session.add_all(future_programs)
 
     session.close()
 
 def delete_unused_programs():
-    del_session = Session(autocommit=True)
-    with del_session.begin():
 
-        # save recording and recoded programs, delete otherwise
-        del_session.query(Program).filter_by(
-                is_recorded=False,
-                is_recording=False).delete()
+    now = jst_now()
+    future = Program.start > now
+    non_recorded = and_(
+            Program.end < now,
+            Program.is_recorded == False,
+    )
+    non_recording = and_(
+            Program.start < now,
+            Program.end > now,
+            Program.is_reserved == False,
+            Program.is_recording == False,
+    )
 
-    del_session.close()
+    criteria = or_(
+            future,
+            non_recorded,
+            non_recording,
+    )
+
+    session = Session(autocommit=True)
+    with session.begin():
+
+        session.query(Program).filter(criteria).delete()
+
+    session.close()
 
 def task():
     logger.info("Crawl started")
