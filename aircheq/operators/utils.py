@@ -49,7 +49,7 @@ def get_coming_weekday(wday_num):
     return today + datetime.timedelta(days=weekdays.index(wday_num))
 
 def time_intervals(timedelta, first_time=None):
-    first_time = first_time or datetime.datetime.now()
+    first_time = first_time or jst_now()
 
     yield first_time
 
