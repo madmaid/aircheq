@@ -32,29 +32,33 @@ def create_recorder(program):
 
 def record(recorder, program):
 
-    session = Session(autocommit=True)
-    with session.begin():
-        _program = session.merge(program)
-        session.add(_program)
+    try:
+        session = Session(autocommit=True)
+        with session.begin():
+            _program = session.merge(program)
+            session.add(_program)
 
-        _program.is_reserved = False
-        _program.is_recording = True
-        _program.is_recorded = False
+            _program.is_reserved = False
+            _program.is_recording = True
+            _program.is_recorded = False
 
-    session.close()
+        session.close()
 
-    recorder.record()
+        recorder.record()
+    except KeyboardInterrupt:
+        logger = getLogger("aircheq-recorder")
+        logger.warning("Stopped by KeyboardInterrupt: {}".format(_program.id))
+    finally:
+        session = Session(autocommit=True)
+        with session.begin():
+            _program = session.merge(program)
+            session.add(_program)
 
-    session = Session(autocommit=True)
-    with session.begin():
-        _program = session.merge(program)
-        session.add(_program)
 
-
-        _program.is_recorded = True
-        _program.is_recording = False
-        _program.is_reserved = False
-    session.close()
+            _program.is_recorded = True
+            _program.is_recording = False
+            _program.is_reserved = False
+        session.close()
 
 
 def task():
