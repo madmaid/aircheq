@@ -36,7 +36,6 @@ class Recorder(object):
         self.duration = int((program.duration + datetime.timedelta(seconds=3)).total_seconds())
 
         self.id = program.id
-        self.movie = movie
 
 
     def record(self):
@@ -55,20 +54,5 @@ class Recorder(object):
         else:
             self.logger.info("Finish Recording: {}".format(self.id))
 
-    def detect_audio_codec(self):
-        ffmpeg_cmd = "ffmpeg -i {save_path}".format(save_path=self.save_path).split(" ")
 
-        ffmpeg_result = subprocess.run(ffmpeg_cmd, stderr=subprocess.STDOUT)
-        for line in ffmpeg_result.stderr.readlines():
-            target = "Audio:\s+"
-            search = re.search(target, line)
-            if search is not None:
-                return re.split(target, line)[-1]
 
-    def split(self):
-        self.audio_codec = self.detect_audio_codec()
-        self.split_command = "ffmpeg -i {input} -acodec copy -map 0:1 {output}".format_map({
-                "input": self.save_path,
-                "output": self.save_path + '.' + self.audio_codec
-            }).split(' ')
-        self.ffmpeg = subprocess.check_call(self.split_command)
