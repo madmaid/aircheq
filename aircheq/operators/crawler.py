@@ -14,6 +14,7 @@ from . import parsers
 from . import reserve
 from . import utils
 
+from .utils import jst_now
 from .parsers import model
 from .parsers.model import (Program, Service, Channel, )
 from .. import config, dbconfig
@@ -153,9 +154,8 @@ def task():
     logger.info("Reservation Finished ")
 
 def task_with_retry(max_count=5, retry_interval=datetime.timedelta(seconds=300)):
-    now = utils.jst_now
     sch = sched.scheduler(time.time)
-    for dt, count in zip(utils.time_intervals(retry_interval, first_time=now()), range(0, max_count)):
+    for dt, count in zip(utils.time_intervals(retry_interval, first_time=jst_now()), range(0, max_count)):
         sch.enterabs(utils.datetime_to_time(dt), 1, task)
         try:
             sch.run()
@@ -173,9 +173,8 @@ def main():
 
     # launch scheduler
     sch = sched.scheduler(time.time)
-    now = utils.jst_now
-    upnext =  now().replace(minute=10) 
-    if upnext < now():
+    upnext = jst_now().replace(minute=10) 
+    if upnext < jst_now():
         upnext += datetime.timedelta(hours=1)
 
     for dt in utils.time_intervals(datetime.timedelta(hours=1), first_time=upnext):
