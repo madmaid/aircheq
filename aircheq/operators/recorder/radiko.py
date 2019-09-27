@@ -42,6 +42,6 @@ class Recorder(base.Recorder):
                 "playpath": self.playpath,
                 "player_url": self.PLAYER_URL,
                 "authtoken": self.authtoken,
-                "duration": self.duration,
-                "output": self.save_path + self.FILEEXT
+                "duration": self.duration_from_now(),
+                "output": str(self.get_save_path(self.program.start)) + self.FILEEXT
             }).split(" ")

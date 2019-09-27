@@ -14,7 +14,7 @@ class Recorder(base.Recorder):
         "rtmpdump -r {url} --live --stop {duration} -o {output}"
         ).format_map({
             'url': config.AGQR_STREAM_URL,
-            'duration': self.duration,
-            'output': self.save_path + self.FILEEXT,
+            'duration': self.duration_from_now(),
+            'output': str(self.get_save_path(self.program.start)) + self.FILEEXT,
         }).split(' ')
 
