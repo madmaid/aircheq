@@ -118,15 +118,14 @@ def parse_guide(html):
                 # CAUTION:
                 # if a boxed program strides over 0AM, this doesn't work correctly
 
-                # p is just before program in the date
-                p = [prog for prog in programs if prog["end"] == start][-1] 
+                parent = tuple(p for p in programs if p["end"] == start)[-1] 
 
                 boxed_info = "\n".join([start.isoformat(), title, info])
 
-                programs[programs.index(p)].update({
-                        "info": p["info"] + boxed_info,
-                        "duration": p["duration"] + duration,
-                        'end': p['end'] + duration,
+                programs[programs.index(parent)].update({
+                        "info": parent["info"] + boxed_info,
+                        "duration": parent["duration"] + duration,
+                        'end': parent['end'] + duration,
                     })
             else:
                 channel, channel_jp = tuple(get_channels().items())[0]
