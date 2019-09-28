@@ -7,13 +7,14 @@ import traceback
 
 
 from requests import HTTPError
-from sqlalchemy import and_
+from sqlalchemy import (and_, or_)
 from sqlalchemy.engine import create_engine
 
 from . import parsers
 from . import reserve
 from . import utils
 
+from .utils import jst_now
 from .parsers import model
 from .parsers.model import (Program, Service, Channel, )
 from .. import config, dbconfig
@@ -110,21 +111,59 @@ def persist_all_programs():
         logger.warning("Skipped adding programs to DB: No resources found")
         return
 
-    inserted = tuple(p for p in programs if p.end > utils.jst_now())
+    now = jst_now()
+
+    # gonna be recording soon
+    gonna_record = and_(
+            Program.is_reserved == True,
+            Program.start < now,
+            Program.end > now
+    )
+    criteria = or_(Program.is_recording == True, gonna_record)
+
+    future_programs = tuple(p for p in programs if p.start > now)
+    now_onair = tuple(p for p in programs if p.start < now and p.end > now)
+
+
+    has_same = lambda targets, p: any(p.is_same_with(r) for r in targets)
+
     session = Session(autocommit=True)
     with session.begin():
+        recordings = session.query(Program).filter(criteria)
+        non_recordings = tuple(p for p in now_onair if not has_same(recordings, p))
 
-        session.add_all(inserted)
+        session.add_all(non_recordings)
+        session.add_all(future_programs)
 
     session.close()
 
 def delete_unused_programs():
-    del_session = Session(autocommit=True)
-    with del_session.begin():
 
-        del_session.query(Program).filter_by(is_recorded=False).delete()
+    now = jst_now()
+    future = Program.start > now
+    non_recorded = and_(
+            Program.end < now,
+            Program.is_recorded == False,
+    )
+    non_recording = and_(
+            Program.start < now,
+            Program.end > now,
+            Program.is_reserved == False,
+            Program.is_recording == False,
+    )
 
-    del_session.close()
+    criteria = or_(
+            future,
+            non_recorded,
+            non_recording,
+    )
+
+    session = Session(autocommit=True)
+    with session.begin():
+
+        session.query(Program).filter(criteria).delete()
+
+    session.close()
 
 def task():
     logger.info("Crawl started")
@@ -144,9 +183,8 @@ def task():
     logger.info("Reservation Finished ")
 
 def task_with_retry(max_count=5, retry_interval=datetime.timedelta(seconds=300)):
-    now = utils.jst_now
     sch = sched.scheduler(time.time)
-    for dt, count in zip(utils.time_intervals(retry_interval, first_time=now()), range(0, max_count)):
+    for dt, count in zip(utils.time_intervals(retry_interval, first_time=jst_now()), range(0, max_count)):
         sch.enterabs(utils.datetime_to_time(dt), 1, task)
         try:
             sch.run()
@@ -164,9 +202,8 @@ def main():
 
     # launch scheduler
     sch = sched.scheduler(time.time)
-    now = utils.jst_now
-    upnext =  now().replace(minute=10) 
-    if upnext < now():
+    upnext = jst_now().replace(minute=10) 
+    if upnext < jst_now():
         upnext += datetime.timedelta(hours=1)
 
     for dt in utils.time_intervals(datetime.timedelta(hours=1), first_time=upnext):

@@ -8,6 +8,7 @@ from sqlalchemy import (
 from sqlalchemy.orm import relationship
 
 from ...dbconfig import Base 
+from ..utils import (jst_now, naive_to_JST)
 
 class APIResultEmptyError(Exception):
     def __init__(self, message):
@@ -54,6 +55,24 @@ class Program(Base):
         for k,v in dic.items():
             setattr(program, k, v)
         return program
+
+    def is_same_with(self, the_other):
+        return is_same_program(self, the_other)
+
+def is_same_program(program_a, program_b):
+    attributes = ("service", "channel", "start", "end", "title")
+    for attr in attributes:
+        targets = getattr(program_a, attr), getattr(program_b, attr)
+
+        if all(type(t) == datetime.datetime for t in targets):
+            left, right = tuple(naive_to_JST(t) if t.tzinfo is None else t for t in targets)
+        else:
+            left, right = targets
+
+        if left != right:
+            return False
+
+    return True
         
 def dict_to_program(dic):
     program = Program()

@@ -22,8 +22,8 @@ class Recorder(base.Recorder):
                 url = areakey.xpath("../{channel}hls".format(channel=program.channel))[0].text
                 self.command = CMD_TEMPLATE.format_map({
                         "m3u8url": url,
-                        "duration": self.duration,
-                        'output': self.save_path + self.FILEEXT,
+                        "duration": self.duration_from_now(),
+                        'output': str(self.get_save_path(self.program.start)) + self.FILEEXT,
                     }).split(" ")
                 return
         raise InvalidAreaKeyError

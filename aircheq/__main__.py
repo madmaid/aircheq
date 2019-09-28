@@ -32,24 +32,34 @@ def create_recorder(program):
 
 def record(recorder, program):
 
-    session = Session(autocommit=True)
-    with session.begin():
-        _program = session.merge(program)
-        session.add(_program)
+    try:
+        session = Session(autocommit=True)
+        with session.begin():
+            _program = session.merge(program)
+            session.add(_program)
 
-        _program.is_recording = True
-    session.close()
+            _program.is_reserved = False
+            _program.is_recording = True
+            _program.is_recorded = False
 
-    recorder.record()
+        session.close()
 
-    session = Session(autocommit=True)
-    with session.begin():
-        _program = session.merge(program)
-        session.add(_program)
+        recorder.record()
+    except KeyboardInterrupt:
+        logger = getLogger("aircheq-recorder")
+        logger.warning("Stopped by KeyboardInterrupt: {}".format(_program.id))
+    finally:
+        session = Session(autocommit=True)
+        with session.begin():
+            _program = session.merge(program)
+            session.add(_program)
 
-        _program.is_recording = False
-        _program.is_recorded = True
-    session.close()
+
+            _program.is_recorded = True
+            _program.is_recording = False
+            _program.is_reserved = False
+        session.close()
+
 
 def task():
     logger = getLogger("aircheq-recorder")
@@ -70,22 +80,24 @@ def task():
     session = Session(autocommit=True)
     with session.begin():
 
-        # Recording
-        for p in session.query(Program).filter(criteria):
-            by_start = p.start - datetime.datetime.now()
-            # start process before 3 secs from Program.start
-            if by_start < datetime.timedelta(seconds=MONITOR_INTERVAL):
+        reserved = session.query(Program).filter(criteria).all()
 
-
-                r = create_recorder(p)
-
-                process = multiprocessing.Process(target=record, args=(r, p), name=p.id)
-
-                msg = "Create Process: {}, {}".format(process, p.service)
-                logger.info(msg)
-
-                process.start()
     session.close()
+    # Recording
+    for p in reserved:
+        by_start = p.start - datetime.datetime.now()
+        # start process before 3 secs from Program.start
+        if by_start < datetime.timedelta(seconds=MONITOR_INTERVAL):
+
+
+            r = create_recorder(p)
+
+            process = multiprocessing.Process(target=record, args=(r, p), name=p.id)
+
+            msg = "Create Process: {}, {}".format(process, p.service)
+            logger.info(msg)
+
+            process.start()
 
 def record_reserved():
     # initialize
