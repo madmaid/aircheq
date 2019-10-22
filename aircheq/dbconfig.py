@@ -1,5 +1,6 @@
 import sys
 import pathlib
+import contextlib
 
 from logging import getLogger
 
@@ -61,6 +62,20 @@ def create_session(engine, testing=False):
         class_=TestingSession if testing else Session,
         expire_on_commit=False
     )
+
+@contextlib.contextmanager
+def start_session(Session, *args):
+    session = Session(*args)
+    try:
+        yield session
+        session.commit()
+    except:
+        session.rollback()
+        raise
+    finally:
+        session.close()
+
+
 
 meta = MetaData(naming_convention={
     "ix": "ix_%(column_0_label)s",

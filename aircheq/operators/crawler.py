@@ -17,10 +17,11 @@ from . import utils
 from .utils import jst_now
 from .parsers import model
 from .parsers.model import (Program, Service, Channel, )
-from .. import config, dbconfig
+from .. import config
+from ..dbconfig import (create_session, start_session)
 
 engine = create_engine(config.GUIDE_DATABASE_URL, echo=False)
-Session = dbconfig.create_session(engine)
+Session = create_session(engine)
 logger = logging.getLogger("aircheq-crawler")
 
 
@@ -47,11 +48,8 @@ def fetch_with_error_collection(fetch_generator):
 def fetch_all_programs():
     for parser in parsers.modules:
         for program in parser.get_programs():
-            session = Session(autocommit=True)
-
-            with session.begin():
-                channel = session.query(Channel).filter_by(name=program.channel).one()
-            session.close()
+            with start_session(Session) as session:
+                channel = session.query(Channel).filter_by(name=program.channel).one_or_none()
 
             program.channel_id = channel.id
             yield program
@@ -61,10 +59,8 @@ def fetch_all_channels():
 
     for parser_name in parsers.__all__:
 
-        session = Session(autocommit=True)
-        with session.begin():
-            service = session.query(Service).filter_by(name=parser_name).one()
-        session.close()
+        with start_session(Session) as session:
+            service = session.query(Service).filter_by(name=parser_name).one_or_none()
 
         parser = getattr(parsers, parser_name)
         for name, name_jp in parser.get_channels().items():
@@ -82,25 +78,21 @@ def persist_all_channels():
         return
 
     for channel in channels:
-        session = Session(autocommit=True)
-        with session.begin():
+        with start_session(Session) as session:
             stored = session.query(Channel).filter_by(name=channel.name).one_or_none()
             if stored is None:
                 session.add(channel)
-        session.close()
 
 
 def store_all_services():
     # aircheq stores services to db half-manually from aircheq.operator.parser.__init__
     for parser_name in parsers.__all__:
-        session = Session(autocommit=True)
-        with session.begin():
+        with start_session(Session) as session:
             service = session.query(Service).filter_by(name=parser_name).one_or_none()
             if service is None:
                 service = Service()
                 service.name = parser_name
                 session.add(service)
-        session.close()
 
 
 def persist_all_programs():
@@ -127,15 +119,12 @@ def persist_all_programs():
 
     has_same = lambda targets, p: any(p.is_same_with(r) for r in targets)
 
-    session = Session(autocommit=True)
-    with session.begin():
+    with start_session(Session) as session:
         recordings = session.query(Program).filter(criteria)
         non_recordings = tuple(p for p in now_onair if not has_same(recordings, p))
 
         session.add_all(non_recordings)
         session.add_all(future_programs)
-
-    session.close()
 
 def delete_unused_programs():
 
@@ -158,12 +147,9 @@ def delete_unused_programs():
             non_recording,
     )
 
-    session = Session(autocommit=True)
-    with session.begin():
-
+    with start_session(Session) as session:
         session.query(Program).filter(criteria).delete()
 
-    session.close()
 
 def task():
     logger.info("Crawl started")

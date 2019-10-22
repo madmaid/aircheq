@@ -5,11 +5,11 @@ from sqlalchemy.engine import create_engine
 
 from .parsers.model import Program
 from .utils import jst_now
-from .. import (config, dbconfig)
-from ..dbconfig import Base 
+from .. import (config, )
+from ..dbconfig import (Base, create_session, start_session)
 
 engine = create_engine(config.GUIDE_DATABASE_URL, echo=False)
-Session = dbconfig.create_session(engine)
+Session = create_session(engine)
 
 class Rule(Base):
     __tablename__ = 'rules'
@@ -41,10 +41,8 @@ def match(session, rule):
 
 def reserve_all():
     logger = logging.getLogger("aircheq-crawler")
-    session = Session(autocommit=True)
-    with session.begin():
+    with start_session(Session) as session:
         for rule in session.query(Rule).order_by(Rule.id):
             for program in match(session, rule):
                 program.is_reserved = True
                 logger.info("Reserved: {p.id} {p.channel} {p.start}".format(p=program))
-    session.close()

@@ -16,6 +16,7 @@ from sqlalchemy.orm import sessionmaker
 
 
 from . import (config, dbconfig)
+from .dbconfig import start_session
 from .operators import (reserve, crawler, utils, recorder)
 from .operators.parsers import model
 from .operators.parsers.model import (Program, Service, Channel)
@@ -33,8 +34,7 @@ def create_recorder(program):
 def record(recorder, program):
 
     try:
-        session = Session(autocommit=True)
-        with session.begin():
+        with start_session(Session) as session:
             _program = session.merge(program)
             session.add(_program)
 
@@ -42,15 +42,13 @@ def record(recorder, program):
             _program.is_recording = True
             _program.is_recorded = False
 
-        session.close()
-
         recorder.record()
+
     except KeyboardInterrupt:
         logger = getLogger("aircheq-recorder")
         logger.warning("Stopped by KeyboardInterrupt: {}".format(_program.id))
     finally:
-        session = Session(autocommit=True)
-        with session.begin():
+        with start_session(Session) as session:
             _program = session.merge(program)
             session.add(_program)
 
@@ -58,7 +56,6 @@ def record(recorder, program):
             _program.is_recorded = True
             _program.is_recording = False
             _program.is_reserved = False
-        session.close()
 
 
 def task():
@@ -77,12 +74,9 @@ def task():
 
         ), 
     )
-    session = Session(autocommit=True)
-    with session.begin():
-
+    with start_session(Session) as session:
         reserved = session.query(Program).filter(criteria).all()
 
-    session.close()
     # Recording
     for p in reserved:
         by_start = p.start - datetime.datetime.now()
