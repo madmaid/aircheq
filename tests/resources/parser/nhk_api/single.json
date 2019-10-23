@@ -1,0 +1,43 @@
+{
+  "list": {
+    "n1": [
+      {
+        "id": "2019092870627",
+        "event_id": "70627",
+        "start_time": "2019-09-28T04:05:00+09:00",
+        "end_time": "2019-09-28T05:00:03+09:00",
+        "area": {
+          "id": "130",
+          "name": "東京"
+        },
+        "service": {
+          "id": "n1",
+          "name": "ＮＨＫネットラジオ第1",
+          "logo_s": {
+            "url": "//www.example.com/common/img/media/r1-100x50.png",
+            "width": "100",
+            "height": "50"
+          },
+          "logo_m": {
+            "url": "//www.example.com/common/img/media/r1-200x100.png",
+            "width": "200",
+            "height": "100"
+          },
+          "logo_l": {
+            "url": "//www.example.com/common/img/media/r1-200x200.png",
+            "width": "200",
+            "height": "200"
+          }
+        },
+        "title": "旭川発ラジオ深夜便▽「明日へのことば」講演会から",
+        "subtitle": "",
+        "content": "　山田朋生　▽「明日へのことば」講演会から　「増毛の海があったからこその料理人生」　フランス料理シェフ…三國清三▽誕生日の花　▽明日の予告",
+        "act": "山田朋生，三國清三",
+        "genres": [
+          "0215",
+          "0415"
+        ]
+      }
+    ]
+  }
+}

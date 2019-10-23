@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<radiko>
+	<ttl>1800</ttl>
+	<srvtime>1542194925</srvtime>
+	<stations>
+		<station id="TBS">
+		<name>TBSラジオ</name>
+			<progs>
+				<date>20181114</date>
+					<prog id="9455610684" master_id="" ft="20181114050000" to="20181114063000" ftl="0500" tol="0630" dur="5400">
+						<title>生島ヒロシのおはよう定食・一直線</title>
+						<url>http://www.example.com</url>
+						<failed_record>0</failed_record>
+						<ts_in_ng>0</ts_in_ng>
+						<ts_out_ng>0</ts_out_ng>
+						<desc>test</desc>
+						<info>テスト</info>
+						<pfm>生島ヒロシ</pfm>
+						<img>https://example.com/res/program/DEFAULT_IMAGE/TBS/cl_20180115153458_5434216.jpg</img>
+						<metas>
+                            <meta name="twitter" value="#radiko" />
+						</metas>
+					</prog>
+			</progs>
+		</station>
+	</stations>
+</radiko>
