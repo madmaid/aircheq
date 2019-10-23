@@ -60,19 +60,22 @@ def record(recorder, program):
 
 def task():
     logger = getLogger("aircheq-recorder")
-    criteria = or_(
-        and_(
-            Program.is_reserved == True,
-            Program.is_recorded == False,
-            Program.is_recording == False,
-            Program.is_manual_reserved == False
-        ), 
-        and_(
-            Program.is_recorded == False,
-            Program.is_recording == False,
-            Program.is_manual_reserved == True
+    criteria = and_(
+        Program.end > utils.jst_now(),
+        or_(
+            and_(
+                Program.is_reserved == True,
+                Program.is_recorded == False,
+                Program.is_recording == False,
+                Program.is_manual_reserved == False
+            ), 
+            and_(
+                Program.is_recorded == False,
+                Program.is_recording == False,
+                Program.is_manual_reserved == True
 
-        ), 
+            ), 
+        )
     )
     with start_session(Session) as session:
         reserved = session.query(Program).filter(criteria).all()
