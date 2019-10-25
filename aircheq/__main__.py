@@ -58,7 +58,7 @@ def record(recorder, program):
             _program.is_reserved = False
 
 
-def task():
+def record_reserved():
     logger = getLogger("aircheq-recorder")
     criteria = and_(
         Program.end > utils.jst_now(),
@@ -96,12 +96,12 @@ def task():
 
             process.start()
 
-def record_reserved():
+def monitor_reserved():
     # initialize
     sch = sched.scheduler(time.time)
     # main loop
     for dt in utils.time_intervals(datetime.timedelta(seconds=MONITOR_INTERVAL)):
-        sch.enterabs(utils.datetime_to_time(dt), 1, task)
+        sch.enterabs(utils.datetime_to_time(dt), 1, record_reserved)
         sch.run()
 
 def create_tables():
@@ -134,7 +134,7 @@ def main():
 
 
     _crawler = multiprocessing.Process(target=crawler.main, name='crawler')
-    _recorder = multiprocessing.Process(target=record_reserved, name='recorder')
+    _recorder = multiprocessing.Process(target=monitor_reserved, name='recorder')
 
     crawler_logger.info("Start Crawler")
     _crawler.start()
