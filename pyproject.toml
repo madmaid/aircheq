@@ -19,6 +19,11 @@ alembic = "^1.0.11"
 
 pytest = "^4.3.0"
 pytest-mock = "^1.10.4"
+neovim = { version = "^0.3.1", optional = true }
+
+[tool.poetry.extras]
+pytest = ["pytest", "pytest-mock"]
+neovim = ["neovim"]
 
 [build-system]
 requires = ["poetry>=0.12"]
