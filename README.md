@@ -3,27 +3,25 @@ Recorder for Japanese streaming radio service
 
 ## Dependencies
 * Python >= 3.6
-* pipenv 
-* Node v8
+* poetry 
 * RTMPDump (as a global package)
 * swfextract (as a global package)
 * ffmpeg (as a global package)
+
 * NHK API KEY
 
 
 * (Optional) webpack (as a global package, to build WUI from source)
 
 ## Installation
-    # install recorder and web api server 
-
-    pipenv install
-    # (the old way using "pip install -rrequirements.txt" is no longer supported.)
+    cd /path/to/project_root/
+    poetry install
 
 ## Run 
 ```bash
     cd /path/to/project_root/
-    pipenv run python -m aircheq   # Start Operator
-    pipenv run python -m aircheq.web # Start Web Server
+    poetry run python -m aircheq        # Start Operator
+    poetry run python -m aircheq.web    # Start Web Server
 ```
 to run, you need to configure `~/.aircheq/config.py` .
  
