@@ -18,6 +18,7 @@ from sqlalchemy.orm import sessionmaker
 from . import (config, dbconfig)
 from .dbconfig import start_session
 from .operators import (reserve, crawler, utils, recorder)
+from .operators.utils import (jst_now, time_intervals)
 from .operators.parsers import model
 from .operators.parsers.model import (Program, Service, Channel)
 
@@ -61,7 +62,7 @@ def record(recorder, program):
 def record_reserved():
     logger = getLogger("aircheq-recorder")
     criteria = and_(
-        Program.end > utils.jst_now(),
+        Program.end > jst_now(),
         or_(
             and_(
                 Program.is_reserved == True,
@@ -100,7 +101,7 @@ def monitor_reserved():
     # initialize
     sch = sched.scheduler(time.time)
     # main loop
-    for dt in utils.time_intervals(datetime.timedelta(seconds=MONITOR_INTERVAL)):
+    for dt in time_intervals(datetime.timedelta(seconds=MONITOR_INTERVAL)):
         sch.enterabs(utils.datetime_to_time(dt), 1, record_reserved)
         sch.run()
 
