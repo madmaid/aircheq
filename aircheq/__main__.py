@@ -91,11 +91,11 @@ def record_reserved():
             r = create_recorder(p)
 
             process = multiprocessing.Process(target=record, args=(r, p), name=p.id)
+            process.start()
 
             msg = "Create Process: {}, {}".format(process, p.service)
             logger.info(msg)
 
-            process.start()
 
 def monitor_reserved():
     # initialize
