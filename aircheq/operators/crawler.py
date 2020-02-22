@@ -105,7 +105,6 @@ def persist_all_programs():
 
     now = jst_now()
 
-    # gonna be recording soon
     gonna_record = and_(
             Program.is_reserved == True,
             Program.start < now,
