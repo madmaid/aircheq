@@ -26,7 +26,7 @@ engine = create_engine(config.GUIDE_DATABASE_URL, echo=False)
 Session = dbconfig.create_session(engine)
 
 # TODO: make this configable
-MONITOR_INTERVAL = 3 #sec
+MONITOR_INTERVAL = 5 #sec
 
 def create_recorder(program):
     r = getattr(recorder, program.service)
@@ -84,7 +84,7 @@ def record_reserved():
     # Recording
     for p in reserved:
         by_start = p.start - datetime.datetime.now()
-        # start process before 3 secs from Program.start
+        # start process before 5 secs from Program.start
         if by_start < datetime.timedelta(seconds=MONITOR_INTERVAL):
 
 
