@@ -2,7 +2,7 @@
 Recorder for Japanese streaming radio service
 
 ## Dependencies
-* Python >= 3.6
+* Python >= 3.7
 * poetry 
 * RTMPDump (as a global package)
 * swfextract (as a global package)
