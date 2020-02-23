@@ -5,6 +5,7 @@ import itertools
 
 import lxml.html
 import requests
+import dateutil.parser
 
 from ... import config
 from . import model
@@ -58,9 +59,9 @@ def parse_guide(html):
     root = lxml.html.fromstring(html)
     this_year = datetime.date.today().year
 
-    strptime = datetime.datetime.strptime
+    parse_time = dateutil.parser.parse
     _format = (lambda date_str:
-            strptime(re.search("\d+/\d+", date_str).group(), "%m/%d").replace(year=this_year)
+            parse_time(re.search("\d+/\d+", date_str).group()).replace(year=this_year)
     )
     DATES = [_format(date).date() for date in root.xpath('//table/thead/tr/td/text()')]
 
