@@ -5,7 +5,7 @@ description = ""
 authors = ["madmaid <madmaid@users.noreply.github.com>"]
 
 [tool.poetry.dependencies]
-python = "^3.7"
+python = ">=3.7"
 lxml = "^4.3.4"
 python-dateutil = "^2.5.3"
 pytz = "^2016.4"
