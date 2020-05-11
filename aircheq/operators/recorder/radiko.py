@@ -21,9 +21,21 @@ class Recorder(base.Recorder):
         self.authtoken = self.auth.get_authtoken()
 
         ch_xml_url = config.RADIKO_STREAM_XML_URL.format(station_id=program.channel)
-        channel_xml = requests.get(ch_xml_url)
-        stream_url_full = lxml.etree.fromstring(channel_xml.content).xpath('//url/item/text()')[0]
-        print(stream_url_full)
+
+        logger.info("try to fetch stream url")
+        RETRY_MAX = 5
+        for count in range(RETRY_MAX):
+            try:
+                channel_xml = requests.get(ch_xml_url)
+                stream_url_full = lxml.etree.fromstring(channel_xml.content).xpath('//url/item/text()')[0]
+            except Exception as err:
+                logger.error(err)
+                if count == RETRY_MAX - 1:
+                    raise err
+            else:
+                break
+            logger.info("retry to fetch stream url")
+
 
         parsed_url = urllib.parse.urlparse(stream_url_full)
         url_parts = parsed_url.path.strip('/').split('/')
