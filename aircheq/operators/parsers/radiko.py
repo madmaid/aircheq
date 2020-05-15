@@ -28,7 +28,7 @@ def get_channels(radiko_auth=None):
     return dict {"channel": "channel_jp"}
     """
     if radiko_auth is None:
-        radiko_auth = auth.RadikoAuth()
+        radiko_auth = auth.RadikoRTMPAuth()
 
     area_id = radiko_auth.get_area()
     #TODO: fetch all channels for premium

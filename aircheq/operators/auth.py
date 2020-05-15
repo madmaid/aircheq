@@ -1,26 +1,31 @@
 #! /usr/bin/python
 # -*- coding: utf-8 -*-
-import requests
 import os
 import pathlib
 import subprocess
 import base64
 import logging
 
+import io 
+
+import requests
+
 from .. import config
 from . import utils
 
 
-class RadikoAuth(object):
-    HTTP_ERR_MSG = '''
-        failed getting auth2_fms, check that your internet connection is available
-        '''
-    PLAYER_URL = "http://radiko.jp/apps/js/flash/myplayer-release.swf"
+HTTP_ERR_MSG = 'Failed getting Radiko authorization: {step}'
+class RadikoAuth:
+    def get_area(self):
+        self.get_authtoken()
+        return self.area
+class RadikoRTMPAuth(RadikoAuth):
     AUTH1_URL = "https://radiko.jp/v2/api/auth1_fms"
     AUTH2_URL = "https://radiko.jp/v2/api/auth2_fms"
 
     def __init__(self, logger=logging.getLogger()):
         self.logger = logger
+        self.player_url = config.RADIKO_PLAYER_URL
         self.PLAYER_PATH = os.path.join(config.RADIKO_TOOLS_DIR, 'player')
         self.KEY_PATH = os.path.join(config.RADIKO_TOOLS_DIR, 'key')
 
@@ -53,7 +58,7 @@ class RadikoAuth(object):
         try:
             auth1_fms.raise_for_status()
         except requests.HTTPError as e:
-            self.logger.error(self.HTTP_ERR_MSG)
+            self.logger.error(HTTP_ERR_MSG)
             raise e
 
         OFFSET = int(auth1_fms.headers['x-radiko-keyoffset'])
@@ -71,18 +76,18 @@ class RadikoAuth(object):
         try:
             auth2_fms.raise_for_status()
         except requests.HTTPError as e:
-            self.logger.error(self.HTTP_ERR_MSG)
+            self.logger.error(HTTP_ERR_MSG)
             raise e
 
         content = auth2_fms.content.decode('utf-8')
         self.area = content.split(',')[0].replace("\r\n", "")
 
     def get_player(self):
-        req = requests.get(self.PLAYER_URL)
+        req = requests.get(self.player_url)
         try:
             req.raise_for_status()
         except requests.HTTPError as e:
-            self.logger.error(self.HTTP_ERR_MSG)
+            self.logger.error(HTTP_ERR_MSG)
 
         with open(self.PLAYER_PATH, 'wb') as player:
             player.write(req.content)
@@ -103,6 +108,50 @@ class RadikoAuth(object):
         self.auth_fms()
         return self.authtoken
 
-    def get_area(self):
+
+class RadikoHLSAuth(RadikoAuth):
+    def __init__(self, logger=logging.getLogger()):
+        self.logger = logger
         self.get_authtoken()
-        return self.area
+
+    def get_authtoken(self):
+        auth1_url = config.RADIKO_AUTH1_URL
+        headers = {
+                'X-Radiko-App': 'pc_html5',
+                'X-Radiko-App-Version': '0.0.1',
+                'X-Radiko-User': 'dummy_user',
+                'X-Radiko-Device': 'pc'
+                }
+        auth1_res = requests.get(auth1_url, headers=headers)
+        try:
+            auth1_res.raise_for_status()
+        except requests.HTTPError as e:
+            logger.error(HTTP_ERR_MSG.format("auth1"))
+            raise e
+
+        offset = int(auth1_res.headers['x-radiko-keyoffset'])
+        keylength = int(auth1_res.headers['x-radiko-keylength'])
+        authtoken = auth1_res.headers["X-Radiko-AuthToken"]
+
+        authkey = io.StringIO(config.RADIKO_AUTH_KEY)
+        authkey.seek(offset)
+        partial_key = base64.b64encode(authkey.read(keylength).encode("utf-8"))
+
+        auth2_headers = headers
+        auth2_headers.update({
+                "X-Radiko-AuthToken": authtoken,
+                "X-Radiko-PartialKey": partial_key,
+        })
+
+        auth2_url = config.RADIKO_AUTH2_URL
+        auth2_res = requests.get(auth2_url, headers=auth2_headers)
+
+        try:
+            auth2_res.raise_for_status()
+        except requests.HTTPError as e:
+            logger.error(HTTP_ERR_MSG.format("auth2"))
+            raise e
+
+        self.authtoken = authtoken
+        self.area = auth2_res.text.split(',')[0]
+
