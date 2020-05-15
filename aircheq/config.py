@@ -100,8 +100,9 @@ class ConfigLoader(object):
         try:
             return getattr(self.module, name)
         except AttributeError:
+            # reload then retry
             loader = importlib.machinery.SourceFileLoader('user_config', os.path.join(CONFIG_DIR, "config.py"))
             user_config = loader.load_module()
-            return getattr(user_config, name)
+            return getattr(user_config, name, None)
 
 sys.modules[__name__] = ConfigLoader(sys.modules[__name__])
