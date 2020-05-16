@@ -48,7 +48,7 @@ class Recorder(object):
         except subprocess.CalledProcessError as e:
             self.logger.error("Recording Command Error: {}".format(e))
         except:
-            self.logger.error("Unexpected Error: {}".format(sys.exc_info()[0]))
+            self.logger.error("Unexpected Error until Recording: {}".format(sys.exc_info()[0]))
         else:
             self.logger.info("Finish Recording: {}".format(self.program.id))
 
