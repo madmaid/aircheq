@@ -5,12 +5,13 @@ import datetime
 import lxml.etree
 import requests
 
-from ... import config
+from ... import userconfig
 from .. import auth
 from . import model
 
 from ..utils import naive_to_JST
 
+config = userconfig.TomlLoader()
 def parse_area_stations(stations_xml):
     """
     str -> dict { station id: station_name }
@@ -32,7 +33,7 @@ def get_channels(radiko_auth=None):
 
     area_id = radiko_auth.get_area()
     #TODO: fetch all channels for premium
-    url = config.RADIKO_CHANNELS_FROM_AREA_URL.format(area_id=area_id)
+    url = config["radiko"]["channels_from_area_url"].format(area_id=area_id)
     raw_xml = requests.get(url)
 
     raw_xml.raise_for_status()
@@ -101,7 +102,9 @@ def parse_guide(guide_xml):
                 }
         yield program
 
-def get_programs(api=config.RADIKO_WEEKLY_FROM_CHANNEL_URL):
+def get_programs(api=None):
+    if api is None:
+        api = config["radiko"]["weekly_from_channel_url"]
     station_ids = get_channels()
     for station_id in station_ids:
         req = requests.get(api.format(station_id=station_id))

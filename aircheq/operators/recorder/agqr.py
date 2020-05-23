@@ -1,6 +1,7 @@
-from ... import config
+from ... import userconfig
 from . import base
 
+config = userconfig.TomlLoader()
 class Recorder(base.Recorder):
     def __init__(self, program, movie=True):
         """
@@ -8,7 +9,7 @@ class Recorder(base.Recorder):
         """
 
         super().__init__(program, movie)
-        stream_url = config.AGQR_STREAM_URL
+        stream_url = config["agqr"]["stream_url"]
 
         rtmp_template = "rtmpdump -r {url} --live --stop {duration} -o {output}"
         hls_template = "ffmpeg -i {url} -c copy -t {duration} {output}"

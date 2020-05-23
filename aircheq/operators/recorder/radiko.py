@@ -8,18 +8,19 @@ from logging import getLogger
 import lxml.etree
 import requests
 
-from ... import config
+from ... import userconfig
 from .. import auth
 from . import base
 
 logger = getLogger("aircheq-recorder")
+config = userconfig.TomlLoader(logger)
 class Recorder(base.Recorder):
-    PLAYER_URL = config.RADIKO_PLAYER_URL 
+    PLAYER_URL = config["radiko"]["player_url"]
     def __init__(self, program):
         super().__init__(program)
 
-        plurl = config.RADIKO_PLAYLIST_URL
-        xml_plurl = config.RADIKO_STREAM_XML_URL
+        plurl = config["radiko"]["playlist_url"]
+        xml_plurl = config["radiko"]["stream_xml_url"]
 
         if plurl is None and xml_plurl is None:
             logger.error("No Radiko stream url found")
@@ -27,7 +28,7 @@ class Recorder(base.Recorder):
 
         if plurl is not None:
             # HLS
-            self.auth = auth.RadikoHLSAuth(logger=logger)
+            self.auth = auth.RadikoHLSAuth()
             self.authtoken = self.auth.authtoken
 
             self._init_hls(plurl, program)

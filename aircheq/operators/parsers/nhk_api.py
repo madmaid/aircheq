@@ -3,8 +3,10 @@ import datetime
 import requests
 import dateutil.parser
 
-from ... import config
+from ... import userconfig
 from . import model
+
+config = userconfig.TomlLoader()
 
 NHK_NETRADIO_TO_SERVICES = {
         # NHKAPI: RADIRU_STATION
@@ -15,11 +17,11 @@ NHK_NETRADIO_TO_SERVICES = {
 
 
 def program_api(date):
-    api = config.NHK_API_URL
-    key = config.NHK_API_KEY
-    area = config.NHK_API_AREA
+    api = config["radiru"]["api_url"]
+    key = config["radiru"]["api_key"]
+    area = config["radiru"]["area"]
     params = {
-            'area': area,
+            'area': str(area),
             'service': "netradio",
             'date': date.strftime('%Y-%m-%d'),
             'apikey': key
@@ -27,7 +29,7 @@ def program_api(date):
     req = requests.get(api.format_map(params))
 
     if req.status_code == 401:
-        raise model.APIKeyError("Invalid API Key, Check a paramater: NHK_API_KEY in your config")
+        raise model.APIKeyError("Invalid API Key, Check a paramater: api_key in your config")
     req.raise_for_status()
 
     return req.json()

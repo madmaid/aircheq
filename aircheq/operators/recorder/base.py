@@ -8,8 +8,10 @@ import re
 import string
 
 from ..utils import (jst_now, naive_to_JST)
-from ... import config
+from ... import userconfig
 
+
+config = userconfig.TomlLoader()
 class Recorder(object):
     def __init__(self, program, movie=False):
         self.logger = logging.getLogger("aircheq-recorder")
@@ -17,14 +19,14 @@ class Recorder(object):
         self.FILENAME_TEMPLATE = "{channel}_{title}_{start:%Y%m%d_%H%M}"
         self.program = program
 
-        # TODO: replace os.path with pathlib
-        if os.path.exists(os.path.abspath(config.RECORDED_DIR)):
-            save_dir = config.RECORDED_DIR
+        recorded_dir = (
+                pathlib.Path(config["general"]["recorded_dir"]).expanduser().absolute()
+        )
+        if recorded_dir.exists():
+            self.save_dir = recorded_dir
         else:
-            # TODO: change default directory
-            save_dir = './'
+            self.save_dir = pathlib.Path('./').absolute()
 
-        self.save_dir = pathlib.PosixPath(save_dir).absolute()
 
 
     @staticmethod

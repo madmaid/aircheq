@@ -1,24 +1,21 @@
 import argparse
 import datetime
+import logging
+import pathlib
 
 import tabulate
+import toml
 
 from sqlalchemy.engine import create_engine
 from sqlalchemy.orm import sessionmaker
 
-from .. import config
+from .. import userconfig
 from ..operators.parsers.model import Program
 from ..operators.parsers.model import Base as ProgramBase
 from ..operators.reserve import Rule
 from ..operators.reserve import Base as RuleBase
 
-engine = create_engine(config.GUIDE_DATABASE_URL)
-if not engine.dialect.has_table(engine, Program.__tablename__):
-    ProgramBase.metadata.create_all(bind=engine)
-if not engine.dialect.has_table(engine, Rule.__tablename__):
-    RuleBase.metadata.create_all(bind=engine)
-Session = sessionmaker(bind=engine)
-session = Session()
+config = userconfig.TomlLoader()
 
 def manual_reserve(program_id, switch=True):
     program = fetch_program_by_id(program_id)
@@ -71,6 +68,34 @@ def print_program(program_id):
     for k, v in program.__dict__.items():
         print(k, ":", v)
 
+def migrate_to_toml(srcpath, dstpath):
+    d = dict()
+    with open(pathlib.Path(srcpath).absolute(), "r") as old:
+        exec(old.read(), dict(), d)
+
+    skel = toml.load(pathlib.Path(__file__).joinpath("../../../config.toml.skel").resolve())
+
+    skel["general"]["recorded_dir"] = d.get("RECORDED_DIR", "~/")
+    skel["radiko"]["tools_dir"] = d.get("RADIKO_TOOLS_DIR", "")
+    skel["radiru"]["area"] = d.get("NHK_API_AREA", 130)
+    skel["radiru"]["api_key"] = d.get("NHK_API_KEY", "")
+
+    db_dialect, db_path = d.get("GUIDE_DATABASE_URL", "").split(":///")
+    skel["db"]["guide_dialect"] = db_dialect
+    skel["db"]["guide_path"] = db_path
+
+    dst = dstpath.joinpath("config.toml") if dstpath.is_dir() else dstpath
+
+    if dst.exists():
+        confirmation = input(f"{dst} already exists. Overwrite it? (y/N):")
+        if confirmation != "y":
+            print ("aborted.")
+            return
+        
+    with dst.open(mode='w') as f:
+        toml.dump(skel, f, encoder=toml.TomlPathlibEncoder())
+    
+
 def create_argparser():
     root_parser = argparse.ArgumentParser(description="command line interface for aircheq")
     subparsers = root_parser.add_subparsers()
@@ -99,9 +124,33 @@ def create_argparser():
     reserved.add_argument('--peco', action="store_true")
     reserved.set_defaults(func=print_reserved)
 
+
+    migrate_config = subparsers.add_parser("migrate-config", help="migrate config.py to toml")
+    migrate_config.add_argument('srcpath', type=pathlib.Path)
+    migrate_config.add_argument('dstpath', type=pathlib.Path)
+
+    migrate_config.set_defaults(
+            func=lambda args: migrate_to_toml(args.srcpath, args.dstpath),
+            srcpath=userconfig.CONFIG_DIR.joinpath("config.py"),
+            dstpath=userconfig.CONFIG_DIR,
+    )
+
     return root_parser
 
 if __name__ == "__main__":
+    try:
+        engine = create_engine(config["db"]["guide_url"])
+        if not engine.dialect.has_table(engine, Program.__tablename__):
+            ProgramBase.metadata.create_all(bind=engine)
+        if not engine.dialect.has_table(engine, Rule.__tablename__):
+            RuleBase.metadata.create_all(bind=engine)
+        Session = sessionmaker(bind=engine)
+        session = Session()
+    except FileNotFoundError as e:
+        logging.warning("user-config is not found")
+    except AttributeError as e:
+        logging.warning("DB URL is not found in user-config")
+
     parser =  create_argparser()
     args = parser.parse_args()
     try:

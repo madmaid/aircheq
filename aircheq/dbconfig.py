@@ -12,7 +12,9 @@ from sqlalchemy import MetaData
 from sqlalchemy.orm import Session, sessionmaker
 from sqlalchemy.ext.declarative import declarative_base
 
-from . import config
+
+from . import userconfig
+config = userconfig.TomlLoader()
 
 def check_current_head(alembic_cfg, connectable):
     """
@@ -43,7 +45,9 @@ def migrate_to_head(engine):
     # actual migration
     logger.info("try to upgrade DB")
 
-    args = "-x db_url={} --raiseerr upgrade head".format(config.GUIDE_DATABASE_URL).split(' ')
+    args = "-x db_url={db_url} --raiseerr upgrade head".format(
+                db_url = userconfig.get_db_url()
+            ).split(' ')
     alembic.config.main(args)
 
     logger.info("DB revision is up-to-date.")

@@ -7,11 +7,12 @@ import lxml.html
 import requests
 import dateutil.parser
 
-from ... import config
+from ... import userconfig
 from . import model
 
 from ..utils import naive_to_JST
 
+config = userconfig.TomlLoader()
 def get_channels():
     """
     return dict {"channel": "channel_jp"}
@@ -145,7 +146,9 @@ def parse_guide(html):
                 })
     return programs
 
-def get_programs(url=config.AGQR_GUIDE_URL):
+def get_programs(url=None):
+    if url is None:
+        url = config["agqr"]["guide_url"]
     req = requests.get(url)
     req.raise_for_status()
 

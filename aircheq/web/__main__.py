@@ -9,7 +9,7 @@ from sqlalchemy import or_, and_
 from sqlalchemy.engine import create_engine
 from sqlalchemy.orm import scoped_session, sessionmaker
 
-from .. import config, dbconfig
+from .. import (userconfig, dbconfig)
 from ..operators.parsers.model import (
         Program,
         Service,
@@ -43,7 +43,7 @@ class ISOFormatDateTimeJSONEncoder(JSONEncoder):
 app.json_encoder = ISOFormatDateTimeJSONEncoder
 
 
-engine = create_engine(config.GUIDE_DATABASE_URL, echo=True)
+engine = create_engine(userconfig.get_db_url(), echo=True)
 Session = dbconfig.create_session(engine)
 
 def strip_underscore_attr(model_vars):

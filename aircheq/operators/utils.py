@@ -7,14 +7,15 @@ import pathlib
 
 import pytz
 
-from .. import config
+from .. import userconfig
 
 LOG_FORMAT = logging.Formatter("{asctime} - {levelname:8s} - {message}", style="{")
+LOG_DIR = userconfig.CONFIG_DIR.joinpath("logs/")
 
-CRAWLER_LOG = logging.FileHandler(config.LOG_DIR.joinpath("crawler.log"))
+CRAWLER_LOG = logging.FileHandler(LOG_DIR.joinpath("crawler.log"))
 CRAWLER_LOG.setFormatter(LOG_FORMAT)
 
-RECORDER_LOG = logging.FileHandler(config.LOG_DIR.joinpath("recorder.log"))
+RECORDER_LOG = logging.FileHandler(LOG_DIR.joinpath("recorder.log"))
 RECORDER_LOG.setFormatter(LOG_FORMAT)
 
 KANJI_WEEKDAYS = ['月', '火', '水', '木', '金', '土', '日']

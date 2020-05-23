@@ -10,11 +10,12 @@ import io
 
 import requests
 
-from .. import config
+from .. import userconfig
 from . import utils
 
 
 HTTP_ERR_MSG = 'Failed getting Radiko authorization: {step}'
+config = userconfig.TomlLoader()
 class RadikoAuth:
     def get_area(self):
         self.get_authtoken()
@@ -23,11 +24,20 @@ class RadikoRTMPAuth(RadikoAuth):
     AUTH1_URL = "https://radiko.jp/v2/api/auth1_fms"
     AUTH2_URL = "https://radiko.jp/v2/api/auth2_fms"
 
-    def __init__(self, logger=logging.getLogger()):
+    def __init__(self, logger=logging.getLogger(__name__)):
         self.logger = logger
-        self.player_url = config.RADIKO_PLAYER_URL
-        self.PLAYER_PATH = os.path.join(config.RADIKO_TOOLS_DIR, 'player')
-        self.KEY_PATH = os.path.join(config.RADIKO_TOOLS_DIR, 'key')
+        # self.player_url = config.RADIKO_PLAYER_URL
+        self.player_url = config["radiko"]["player_url"]
+        # self.PLAYER_PATH = os.path.join(config.RADIKO_TOOLS_DIR, 'player')
+        self.PLAYER_PATH = (
+                pathlib.Path(config["radiko"]["tools_dir"])
+                    .joinpath('player').expanduser().absolute()
+        )
+        # self.KEY_PATH = os.path.join(config.RADIKO_TOOLS_DIR, 'key')
+        self.KEY_PATH = (
+                pathlib.Path(config["radiko"]["tools_dir"])
+                    .joinpath('key').expanduser().absolute()
+        )
 
         self.headers = {
                 'pragma': 'no-cache',
@@ -97,7 +107,7 @@ class RadikoRTMPAuth(RadikoAuth):
             self.get_player()
 
         cmd = "swfextract -b 12 {PLAYER_PATH} -o {KEY_PATH}".format_map({
-                "PLAYER_PATH": os.path.abspath(self.PLAYER_PATH),
+                "PLAYER_PATH": self.PLAYER_PATH,
                 "KEY_PATH": self.KEY_PATH,
             }).split(" ")
         subprocess.run(cmd, check=True)
@@ -115,7 +125,7 @@ class RadikoHLSAuth(RadikoAuth):
         self.get_authtoken()
 
     def get_authtoken(self):
-        auth1_url = config.RADIKO_AUTH1_URL
+        auth1_url = config["radiko"]["auth1_url"]
         headers = {
                 'X-Radiko-App': 'pc_html5',
                 'X-Radiko-App-Version': '0.0.1',
@@ -133,7 +143,7 @@ class RadikoHLSAuth(RadikoAuth):
         keylength = int(auth1_res.headers['x-radiko-keylength'])
         authtoken = auth1_res.headers["X-Radiko-AuthToken"]
 
-        authkey = io.StringIO(config.RADIKO_AUTH_KEY)
+        authkey = io.StringIO(config["radiko"]["auth_key"])
         authkey.seek(offset)
         partial_key = base64.b64encode(authkey.read(keylength).encode("utf-8"))
 
@@ -143,7 +153,7 @@ class RadikoHLSAuth(RadikoAuth):
                 "X-Radiko-PartialKey": partial_key,
         })
 
-        auth2_url = config.RADIKO_AUTH2_URL
+        auth2_url = config["radiko"]["auth2_url"]
         auth2_res = requests.get(auth2_url, headers=auth2_headers)
 
         try:
