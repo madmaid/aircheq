@@ -10,10 +10,6 @@ import toml
 CONFIG_DIR = pathlib.Path.home().joinpath(pathlib.Path(".aircheq/"))
 CONFIG_PATH = CONFIG_DIR.joinpath("config.toml")
 
-def make_unexist_dir(path_obj):
-    if not path_obj.exists():
-        path_obj.mkdir()
-
 def make_config_skel(path):
     skelpath = pathlib.Path(__file__).parent.joinpath("../config.toml.skel")
     dst = path.parent.joinpath("config.toml")
@@ -28,15 +24,14 @@ def make_default_config_dir(config_dir):
 
     dirs = ( config_dir, db_dir, utils_dir, logs_dir, radiko_tools_dir )
 
-
+    # find then mkdir
     for d in dirs:
-        make_unexist_dir(d)
+        if not d.exists():
+            d.mkdir()
 
     skel_path = config_dir.joinpath("config.toml.skel")
     make_config_skel(skel_path)
 
-# mkdir 
-# make_default_config_dir(CONFIG_DIR)
 
 class TomlLoader:
     def __init__(self, logger=None, config_dir=None):

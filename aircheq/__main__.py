@@ -15,7 +15,7 @@ from sqlalchemy.engine import create_engine
 from sqlalchemy.orm import sessionmaker
 
 
-from . import (config, dbconfig)
+from . import (userconfig, dbconfig)
 from .dbconfig import start_session
 from .operators import (reserve, crawler, utils, recorder)
 from .operators.utils import (jst_now, time_intervals)
@@ -120,6 +120,7 @@ def create_tables():
 
 
 def main():
+    userconfig.make_default_config_dir()
     dbconfig.migrate_to_head(engine)
 
 
