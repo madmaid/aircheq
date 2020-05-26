@@ -25,7 +25,6 @@ from .operators.parsers.model import (Program, Service, Channel)
 engine = create_engine(config.GUIDE_DATABASE_URL, echo=False)
 Session = dbconfig.create_session(engine)
 
-# TODO: make this configable
 MONITOR_INTERVAL = 5 #sec
 
 def create_recorder(program):
@@ -59,7 +58,9 @@ def record(recorder, program):
             _program.is_reserved = False
 
 
-def record_reserved():
+def record_reserved(monitor_interval=None):
+    if monitor_interval is None:
+        monitor_interval = MONITOR_INTERVAL
     logger = getLogger("aircheq-recorder")
     criteria = and_(
         Program.end > jst_now(),
@@ -85,7 +86,7 @@ def record_reserved():
     for p in reserved:
         by_start = p.start - datetime.datetime.now()
         # start process before 5 secs from Program.start
-        if by_start < datetime.timedelta(seconds=MONITOR_INTERVAL):
+        if by_start < datetime.timedelta(seconds=monitor_interval):
 
 
             r = create_recorder(p)
@@ -97,11 +98,13 @@ def record_reserved():
             logger.info(msg)
 
 
-def monitor_reserved():
+def monitor_reserved(monitor_interval=None):
+    if monitor_interval is None:
+        monitor_interval = MONITOR_INTERVAL
     # initialize
     sch = sched.scheduler(time.time)
     # main loop
-    for dt in time_intervals(datetime.timedelta(seconds=MONITOR_INTERVAL)):
+    for dt in time_intervals(datetime.timedelta(seconds=monitor_interval)):
         sch.enterabs(utils.datetime_to_time(dt), 1, record_reserved)
         sch.run()
 
