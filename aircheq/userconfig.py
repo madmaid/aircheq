@@ -32,25 +32,30 @@ def make_default_config_dir(config_dir):
     skel_path = config_dir.joinpath("config.toml.skel")
     make_config_skel(skel_path)
 
+class LoadingConfigFailedError(Exception):
+    pass
+
 
 class TomlLoader:
-    def __init__(self, logger=None, config_dir=None):
+    def __init__(self, logger=None, config_path=None, config=None):
         self.logger = logger or getLogger(__name__)
-        self.config_path = config_dir or CONFIG_PATH
+        self.config_path = config_path or CONFIG_PATH
+        self.config = config
 
     def __getitem__(self, key):
-        try:
-            config = toml.load(self.config_path)
+        if self.config is None:
+            try:
+                self.config = toml.load(self.config_path)
 
-        except FileNotFoundError as e:
-            self.logger.fatal("Config file not found")
-            raise e
+            except FileNotFoundError as e:
+                self.logger.fatal("Config file not found")
+                raise LoadingConfigFailedError()
 
-        except toml.TomlDecodeError as e:
-            self.logger.fatal("Invalid config")
-            raise e
+            except toml.TomlDecodeError as e:
+                self.logger.fatal("Invalid config")
+                raise LoadingConfigFailedError()
 
-        return self.__dict_to_defaultdict(config).get(key, None)
+        return self.__dict_to_defaultdict(self.config).get(key, None)
 
     def __dict_to_defaultdict(self, d):
         return d if not isinstance(d, dict) else defaultdict(lambda: None,
