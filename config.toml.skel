@@ -1,0 +1,59 @@
+[general]
+# recorded_dir 
+## put a directory path for recorded files
+recorded_dir = "~/.aircheq/recorded/"
+
+
+####################
+# Preference for log
+
+log_dir = "~/.aircheq/logs/"
+
+[db]
+## put an DB URL for SQLAlchemy.
+## only sqlite is supported for now.
+guide_dialect = "sqlite" 
+guide_path = "~/.aircheq/db/guide.db"
+
+
+####################
+# Preference for Radiko
+
+[radiko]
+tools_dir = "~/.aircheq/utils/radiko/"
+
+playlist_url = "http://f-radiko.smartstream.ne.jp/{station_id}/_definst_/simul-stream.stream/playlist.m3u8"
+weekly_from_channel_url = "http://radiko.jp/v3/program/station/weekly/{station_id}.xml"
+channels_from_area_url = "http://radiko.jp/v3/station/list/{area_id}.xml"
+stream_xml_url = "http://radiko.jp/v2/station/stream/{station_id}.xml"
+
+auth1_url  = "https://radiko.jp/v2/api/auth1_fms"
+auth2_url = "https://radiko.jp/v2/api/auth2_fms"
+auth_key = "bcd151073c03b352e1ef2fd66c32209da9ca0afa"
+
+
+####################
+# Preference for AGQR 
+
+[agqr]
+guide_url = "http://agqr.jp/timetable/streaming.html"
+stream_url = "http://ic-www.uniqueradio.jp/iphone/3G.m3u8"
+
+## if you want to use rtmp,
+# stream_url = "rtmp://fms-base2.mitene.ad.jp/agqr/aandg22"
+
+####################
+# Preference for NHK
+[radiru]
+
+## put an area code.
+## see http://api-portal.nhk.or.jp/doc-request#explain_area for details
+# area = 130 
+
+## NHK_API_KEY 
+## put NHK API key as str here 
+
+# api_key = 'PUT_NHK_API_KEY_AS_STR_HERE'
+
+api_url = "https://api.nhk.or.jp/v2/pg/list/{area}/{service}/{date}.json?key={apikey}"
+stream_xml_url= "http://www.nhk.or.jp/radio/config/config_web.xml"
