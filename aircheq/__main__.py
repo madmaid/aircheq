@@ -31,31 +31,38 @@ def create_recorder(program):
     r = getattr(recorder, program.service)
     return r.Recorder(program)
 
+def finalize(program):
+    with start_session(Session) as session:
+        _program = session.merge(program)
+        session.add(_program)
+
+        _program.is_recorded = True
+        _program.is_recording = False
+        _program.is_reserved = False
+
+
 def record(recorder, program):
+    with start_session(Session) as session:
+        _program = session.merge(program)
+        session.add(_program)
+
+        _program.is_reserved = False
+        _program.is_recording = True
+        _program.is_recorded = False
 
     try:
-        with start_session(Session) as session:
-            _program = session.merge(program)
-            session.add(_program)
-
-            _program.is_reserved = False
-            _program.is_recording = True
-            _program.is_recorded = False
-
         recorder.record()
 
     except KeyboardInterrupt:
         logger = getLogger("aircheq-recorder")
-        logger.warning("Stopped by KeyboardInterrupt: {}".format(_program.id))
-    finally:
-        with start_session(Session) as session:
-            _program = session.merge(program)
-            session.add(_program)
-
-
-            _program.is_recorded = True
-            _program.is_recording = False
-            _program.is_reserved = False
+        logger.warning("Stopped recording by KeyboardInterrupt: {}".format(_program.id))
+        finalize(program)
+    except Exception as e:
+        logger = getLogger("aircheq-recorder")
+        logger.error("Stopped recording by Unexpected: {pid}, {err}".format(
+            pid=_program.id, err=e)
+        )
+    finalize(program)
 
 
 def record_reserved(monitor_interval=None):
