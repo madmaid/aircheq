@@ -116,7 +116,7 @@ def create_argparser():
     reserve.add_argument('program_id', type=str)
     reserve.set_defaults(func=lambda args: manual_reserve(args.program_id, True))
 
-    unreserve = subparsers.add_parser('unreserve', help='unreserve a program')
+    unreserve = subparsers.add_parser('unreserve', help='cancel reservation')
     unreserve.add_argument('program_id', type=str)
     unreserve.set_defaults(func=lambda args: manual_reserve(args.program_id, False))
 

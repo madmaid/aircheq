@@ -25,41 +25,49 @@ from .operators.parsers.model import (Program, Service, Channel)
 engine = create_engine(config.GUIDE_DATABASE_URL, echo=False)
 Session = dbconfig.create_session(engine)
 
-# TODO: make this configable
 MONITOR_INTERVAL = 5 #sec
 
 def create_recorder(program):
     r = getattr(recorder, program.service)
     return r.Recorder(program)
 
+def finalize(program):
+    with start_session(Session) as session:
+        _program = session.merge(program)
+        session.add(_program)
+
+        _program.is_recorded = True
+        _program.is_recording = False
+        _program.is_reserved = False
+
+
 def record(recorder, program):
+    with start_session(Session) as session:
+        _program = session.merge(program)
+        session.add(_program)
+
+        _program.is_reserved = False
+        _program.is_recording = True
+        _program.is_recorded = False
 
     try:
-        with start_session(Session) as session:
-            _program = session.merge(program)
-            session.add(_program)
-
-            _program.is_reserved = False
-            _program.is_recording = True
-            _program.is_recorded = False
-
         recorder.record()
 
     except KeyboardInterrupt:
         logger = getLogger("aircheq-recorder")
-        logger.warning("Stopped by KeyboardInterrupt: {}".format(_program.id))
-    finally:
-        with start_session(Session) as session:
-            _program = session.merge(program)
-            session.add(_program)
+        logger.warning("Stopped recording by KeyboardInterrupt: {}".format(_program.id))
+        finalize(program)
+    except Exception as e:
+        logger = getLogger("aircheq-recorder")
+        logger.error("Stopped recording by Unexpected: {pid}, {err}".format(
+            pid=_program.id, err=e)
+        )
+    finalize(program)
 
 
-            _program.is_recorded = True
-            _program.is_recording = False
-            _program.is_reserved = False
-
-
-def record_reserved():
+def record_reserved(monitor_interval=None):
+    if monitor_interval is None:
+        monitor_interval = MONITOR_INTERVAL
     logger = getLogger("aircheq-recorder")
     criteria = and_(
         Program.end > jst_now(),
@@ -85,7 +93,7 @@ def record_reserved():
     for p in reserved:
         by_start = p.start - datetime.datetime.now()
         # start process before 5 secs from Program.start
-        if by_start < datetime.timedelta(seconds=MONITOR_INTERVAL):
+        if by_start < datetime.timedelta(seconds=monitor_interval):
 
 
             r = create_recorder(p)
@@ -97,11 +105,13 @@ def record_reserved():
             logger.info(msg)
 
 
-def monitor_reserved():
+def monitor_reserved(monitor_interval=None):
+    if monitor_interval is None:
+        monitor_interval = MONITOR_INTERVAL
     # initialize
     sch = sched.scheduler(time.time)
     # main loop
-    for dt in time_intervals(datetime.timedelta(seconds=MONITOR_INTERVAL)):
+    for dt in time_intervals(datetime.timedelta(seconds=monitor_interval)):
         sch.enterabs(utils.datetime_to_time(dt), 1, record_reserved)
         sch.run()
 

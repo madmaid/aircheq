@@ -97,22 +97,24 @@ def program_factory():
     """
     [(start: datetime.datetime, dur: datetime.timedelta)] -> factory
     """
-    def f(times):
-        return tuple(Program.from_dict({
-                "service": "test",
-                "channel": "test",
-                "channel_jp": "テスト",
-                "start": start,
-                "duration": dur,
-                "end": start + dur,
-                "title": "テスト",
-                "info": "テスト",
-                "is_movie": False,
-                "is_repeat": False,
-                "is_reserved": False,
-                "is_manual_reserved": False,
-                "is_recording": False,
-                "is_recorded": False,
-        }) for start, dur in times)
-    return f
+    def factory(times):
+        create = lambda start, dur: Program.from_dict({
+                            "service": "test",
+                            "channel": "test",
+                            "channel_jp": "テスト",
+                            "start": start,
+                            "duration": dur,
+                            "end": start + dur,
+                            "title": "テスト",
+                            "info": "テスト",
+                            "is_movie": False,
+                            "is_repeat": False,
+                            "is_reserved": False,
+                            "is_manual_reserved": False,
+                            "is_recording": False,
+                            "is_recorded": False,
+                    })
+
+        return tuple(create(start, dur) for start, dur in times)
+    return factory
 
