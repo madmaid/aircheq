@@ -26,14 +26,11 @@ class RadikoRTMPAuth(RadikoAuth):
 
     def __init__(self, logger=logging.getLogger(__name__)):
         self.logger = logger
-        # self.player_url = config.RADIKO_PLAYER_URL
         self.player_url = config["radiko"]["player_url"]
-        # self.PLAYER_PATH = os.path.join(config.RADIKO_TOOLS_DIR, 'player')
         self.PLAYER_PATH = (
                 pathlib.Path(config["radiko"]["tools_dir"])
                     .joinpath('player').expanduser().absolute()
         )
-        # self.KEY_PATH = os.path.join(config.RADIKO_TOOLS_DIR, 'key')
         self.KEY_PATH = (
                 pathlib.Path(config["radiko"]["tools_dir"])
                     .joinpath('key').expanduser().absolute()
