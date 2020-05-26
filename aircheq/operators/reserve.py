@@ -5,10 +5,10 @@ from sqlalchemy.engine import create_engine
 
 from .parsers.model import Program
 from .utils import jst_now
-from .. import (config, )
+from .. import userconfig
 from ..dbconfig import (Base, create_session, start_session)
 
-engine = create_engine(config.GUIDE_DATABASE_URL, echo=False)
+engine = create_engine(userconfig.get_db_url(), echo=False)
 Session = create_session(engine)
 
 class Rule(Base):
