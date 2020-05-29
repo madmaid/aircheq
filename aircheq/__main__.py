@@ -21,7 +21,7 @@ from .operators.utils import (jst_now, time_intervals, init_logger, datetime_to_
 from .operators.parsers import model
 from .operators.parsers.model import (Program, Service, Channel)
 
-engine = create_engine(config.GUIDE_DATABASE_URL, echo=False)
+engine = create_engine(userconfig.get_db_url(), echo=False)
 Session = dbconfig.create_session(engine)
 
 MONITOR_INTERVAL = 5 #sec
