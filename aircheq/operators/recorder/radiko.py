@@ -42,7 +42,7 @@ class Recorder(base.Recorder):
             }))
 
     def _get_stream_url_with_retry(self, playlist_url, extractor, headers=dict()):
-        logger.info("try to fetch stream url")
+        logger.debug("try to fetch stream url")
         RETRY_MAX = 5
         for count in range(RETRY_MAX):
             try:
@@ -51,7 +51,7 @@ class Recorder(base.Recorder):
             except Exception as err:
                 logger.error(err)
             logger.warning(f"retry to fetch stream url (count: {count})")
-        logger.warning("reached max times to retry")
+        logger.error("reached max times to retry")
         raise err
 
 

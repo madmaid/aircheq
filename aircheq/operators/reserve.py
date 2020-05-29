@@ -45,4 +45,4 @@ def reserve_all():
         for rule in session.query(Rule).order_by(Rule.id):
             for program in match(session, rule):
                 program.is_reserved = True
-                logger.info("Reserved: {p.id} {p.channel} {p.start}".format(p=program))
+                logger.debug("Reserved: {p.id} {p.channel} {p.start}".format(p=program))

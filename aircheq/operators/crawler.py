@@ -27,20 +27,20 @@ logger = logging.getLogger(__name__)
 
 def fetch_with_error_collection(fetch_generator):
     def inner():
-        logger.info("Try to fetch resources")
+        logger.debug("Try to fetch resources")
         try:
             yield from fetch_generator()    # pre-fetch to prevent too long transaction
         except HTTPError as e:
-            logger.warning("Fetch Error: {}".format(traceback.format_exc()))
+            logger.error("Fetch Error: {}".format(traceback.format_exc()))
             raise e
         except KeyError as e:
-            logger.warning("JSON KeyError: {}".format(traceback.format_exc()))
+            logger.error("JSON KeyError: {}".format(traceback.format_exc()))
             raise e
         except IndexError as e:
-            logger.warning("Index Error: {}".format(traceback.format_exc()))
+            logger.error("Index Error: {}".format(traceback.format_exc()))
             raise e
         except Exception as e:
-            logger.warning("Unknown Error: {}".format(traceback.format_exc()))
+            logger.error("Unknown Error: {}".format(traceback.format_exc()))
             raise e
     return inner
 
@@ -151,21 +151,21 @@ def delete_unused_programs():
 
 
 def task():
-    logger.info("Crawl started")
+    logger.debug("Crawl started")
 
     delete_unused_programs()
-    logger.info("Unused programs deleted")
+    logger.debug("Unused programs deleted")
 
     # crawl
     persist_all_channels()
     
     persist_all_programs()
 
-    logger.info("Crawl finished")
+    logger.debug("Crawl finished")
 
     # reserve by rule
     reserve.reserve_all()
-    logger.info("Reservation Finished ")
+    logger.debug("Reservation Finished ")
 
 def task_with_retry(max_count=5, retry_interval=datetime.timedelta(seconds=300)):
     sch = sched.scheduler(time.time)
@@ -194,5 +194,5 @@ def main():
 
     for dt in utils.time_intervals(datetime.timedelta(hours=1), first_time=upnext):
         sch.enterabs(utils.datetime_to_time(dt), 1, task_with_retry)
-        logger.info("Next Crawl is scheduled at {}".format(dt))
+        logger.debug("Next Crawl is scheduled at {}".format(dt))
         sch.run()

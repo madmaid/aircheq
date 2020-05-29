@@ -35,7 +35,7 @@ def migrate_to_head(engine):
     # check that DB revision is latest 
     alembic_cfg = alembic.config.Config(str(ini_path))
     if check_current_head(alembic_cfg, engine):
-        logger.info("DB revision is up-to-date.")
+        logger.debug("DB revision is up-to-date.")
         return
 
     # instead of "PYTHONPATH=."
@@ -43,14 +43,14 @@ def migrate_to_head(engine):
         sys.path.append(current_dir)
 
     # actual migration
-    logger.info("try to upgrade DB")
+    logger.debug("try to upgrade DB")
 
     args = "-x db_url={db_url} --raiseerr upgrade head".format(
                 db_url = userconfig.get_db_url()
             ).split(' ')
     alembic.config.main(args)
 
-    logger.info("DB revision is up-to-date.")
+    logger.debug("DB revision is up-to-date.")
 
 class TestingSession(Session):
     def commit(self):
