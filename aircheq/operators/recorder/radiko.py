@@ -3,8 +3,7 @@
 
 import datetime
 import urllib.parse
-from logging import getLogger
-
+import logging
 import lxml.etree
 import requests
 
@@ -12,8 +11,8 @@ from ... import userconfig
 from .. import auth
 from . import base
 
-logger = getLogger("aircheq-recorder")
-config = userconfig.TomlLoader(logger)
+logger = logging.getLogger(__name__)
+config = userconfig.TomlLoader()
 class Recorder(base.Recorder):
     PLAYER_URL = config["radiko"]["player_url"]
     def __init__(self, program):
@@ -35,7 +34,7 @@ class Recorder(base.Recorder):
 
         else:
             # RTMP
-            self.auth = auth.RadikoRTMPAuth(logger=logger)
+            self.auth = auth.RadikoRTMPAuth()
             self.authtoken = self.auth.get_authtoken()
 
             self._init_rtmp(xml_plurl.format_map({

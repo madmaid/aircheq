@@ -1,8 +1,7 @@
 import sys
 import pathlib
 import contextlib
-
-from logging import getLogger
+import logging
 
 import alembic.config
 from alembic import script
@@ -14,7 +13,9 @@ from sqlalchemy.ext.declarative import declarative_base
 
 
 from . import userconfig
+
 config = userconfig.TomlLoader()
+logger = logging.getLogger(__name__)
 
 def check_current_head(alembic_cfg, connectable):
     """
@@ -27,7 +28,6 @@ def check_current_head(alembic_cfg, connectable):
 
 
 def migrate_to_head(engine):
-    logger = getLogger("aircheq-crawler")
 
     current_dir = str(pathlib.PosixPath(".").absolute())
     ini_path = current_dir / pathlib.PurePosixPath("alembic.ini")

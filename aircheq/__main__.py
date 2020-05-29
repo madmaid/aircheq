@@ -5,7 +5,6 @@ import sched
 import multiprocessing
 
 import logging
-from logging import getLogger
 
 
 import sqlalchemy.exc
@@ -17,8 +16,8 @@ from sqlalchemy.orm import sessionmaker
 
 from . import (userconfig, dbconfig)
 from .dbconfig import start_session
-from .operators import (reserve, crawler, utils, recorder)
-from .operators.utils import (jst_now, time_intervals)
+from .operators import (reserve, crawler, recorder)
+from .operators.utils import (jst_now, time_intervals, init_logger, datetime_to_time)
 from .operators.parsers import model
 from .operators.parsers.model import (Program, Service, Channel)
 
@@ -26,6 +25,8 @@ engine = create_engine(config.GUIDE_DATABASE_URL, echo=False)
 Session = dbconfig.create_session(engine)
 
 MONITOR_INTERVAL = 5 #sec
+
+logger = logging.getLogger(__name__)
 
 def create_recorder(program):
     r = getattr(recorder, program.service)
@@ -54,11 +55,9 @@ def record(recorder, program):
         recorder.record()
 
     except KeyboardInterrupt:
-        logger = getLogger("aircheq-recorder")
         logger.warning("Stopped recording by KeyboardInterrupt: {}".format(_program.id))
         finalize(program)
     except Exception as e:
-        logger = getLogger("aircheq-recorder")
         logger.error("Stopped recording by Unexpected: {pid}, {err}".format(
             pid=_program.id, err=e)
         )
@@ -68,7 +67,6 @@ def record(recorder, program):
 def record_reserved(monitor_interval=None):
     if monitor_interval is None:
         monitor_interval = MONITOR_INTERVAL
-    logger = getLogger("aircheq-recorder")
     criteria = and_(
         Program.end > jst_now(),
         or_(
@@ -102,21 +100,23 @@ def record_reserved(monitor_interval=None):
             process.start()
 
             msg = "Create Process: {}, {}".format(process, p.service)
-            logger.info(msg)
+            logger.debug(msg)
 
 
 def monitor_reserved(monitor_interval=None):
+    logger = init_logger(userconfig.LOG_DIR.joinpath("recorder.log").resolve())
+    logger.debug("Start Watching DB")
+
     if monitor_interval is None:
         monitor_interval = MONITOR_INTERVAL
     # initialize
     sch = sched.scheduler(time.time)
     # main loop
     for dt in time_intervals(datetime.timedelta(seconds=monitor_interval)):
-        sch.enterabs(utils.datetime_to_time(dt), 1, record_reserved)
+        sch.enterabs(datetime_to_time(dt), 1, record_reserved)
         sch.run()
 
 def create_tables():
-    # create tables
     program_tables = (Program, Service, Channel)
 
     table_exists = lambda t: engine.dialect.has_table(engine, t.__tablename__)
@@ -130,28 +130,20 @@ def create_tables():
 
 
 def main():
+    # mkdir config/
     userconfig.make_default_config_dir()
+
+    # migrate DB
     dbconfig.migrate_to_head(engine)
-
-
-    crawler_logger = getLogger("aircheq-crawler")
-    crawler_logger.addHandler(utils.CRAWLER_LOG)
-    crawler_logger.setLevel(logging.INFO)
-
-    recorder_logger = getLogger("aircheq-recorder")
-    recorder_logger.addHandler(utils.RECORDER_LOG)
-    recorder_logger.setLevel(logging.INFO)
-
     create_tables()
 
 
+    # create main processes
     _crawler = multiprocessing.Process(target=crawler.main, name='crawler')
     _recorder = multiprocessing.Process(target=monitor_reserved, name='recorder')
 
-    crawler_logger.info("Start Crawler")
     _crawler.start()
 
-    recorder_logger.info("Start Watching DB")
     _recorder.start()
 
 if __name__ == '__main__':

@@ -7,16 +7,6 @@ import pathlib
 
 import pytz
 
-from .. import userconfig
-
-LOG_FORMAT = logging.Formatter("{asctime} - {levelname:8s} - {message}", style="{")
-LOG_DIR = userconfig.CONFIG_DIR.joinpath("logs/")
-
-CRAWLER_LOG = logging.FileHandler(LOG_DIR.joinpath("crawler.log"))
-CRAWLER_LOG.setFormatter(LOG_FORMAT)
-
-RECORDER_LOG = logging.FileHandler(LOG_DIR.joinpath("recorder.log"))
-RECORDER_LOG.setFormatter(LOG_FORMAT)
 
 KANJI_WEEKDAYS = ['月', '火', '水', '木', '金', '土', '日']
 
@@ -67,4 +57,22 @@ def naive_to_JST(dt):
 
 def jst_now():
     return datetime.datetime.now(tz=pytz.timezone("Asia/Tokyo"))
+
+def init_logger(logpath):
+    LOG_FORMAT = logging.Formatter("{asctime} - {levelname:8s} - {message}", style="{")
+    logger = logging.getLogger("aircheq")
+    logger.setLevel(logging.DEBUG)
+
+    file_handler = logging.FileHandler(logpath)
+    file_handler.setLevel(logging.DEBUG)
+    file_handler.setFormatter(LOG_FORMAT)
+
+    console = logging.StreamHandler()
+    console.setFormatter(LOG_FORMAT)
+    console.setLevel(logging.INFO)
+
+    logger.addHandler(file_handler)
+    # logger.addHandler(console)
+
+    return logger
 

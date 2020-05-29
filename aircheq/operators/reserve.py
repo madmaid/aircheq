@@ -10,6 +10,7 @@ from ..dbconfig import (Base, create_session, start_session)
 
 engine = create_engine(userconfig.get_db_url(), echo=False)
 Session = create_session(engine)
+logger = logging.getLogger(__name__)
 
 class Rule(Base):
     __tablename__ = 'rules'
@@ -40,7 +41,6 @@ def match(session, rule):
         return programs.filter_by(is_repeat=False).filter(query)
 
 def reserve_all():
-    logger = logging.getLogger("aircheq-crawler")
     with start_session(Session) as session:
         for rule in session.query(Rule).order_by(Rule.id):
             for program in match(session, rule):

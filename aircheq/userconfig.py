@@ -1,14 +1,17 @@
 import os
 import pathlib
 import shutil
-from logging import getLogger
+import logging 
 
 from collections import defaultdict
 
 import toml
 
+logger = logging.getLogger(__name__)
+
 CONFIG_DIR = pathlib.Path.home().joinpath(pathlib.Path(".aircheq/"))
 CONFIG_PATH = CONFIG_DIR.joinpath("config.toml")
+LOG_DIR = CONFIG_DIR.joinpath("logs/")
 
 def make_config_skel(path):
     skelpath = pathlib.Path(__file__).parent.joinpath("../config.toml.skel")
@@ -37,8 +40,7 @@ class LoadingConfigFailedError(Exception):
 
 
 class TomlLoader:
-    def __init__(self, logger=None, config_path=None, config=None):
-        self.logger = logger or getLogger(__name__)
+    def __init__(self, config_path=None, config=None):
         self.config_path = config_path or CONFIG_PATH
         self.config = config
 
@@ -48,11 +50,11 @@ class TomlLoader:
                 self.config = toml.load(self.config_path)
 
             except FileNotFoundError as e:
-                self.logger.fatal("Config file not found")
+                logger.fatal("Config file not found")
                 raise LoadingConfigFailedError()
 
             except toml.TomlDecodeError as e:
-                self.logger.fatal("Invalid config")
+                logger.fatal("Invalid config")
                 raise LoadingConfigFailedError()
 
         return self.__dict_to_defaultdict(self.config).get(key, None)

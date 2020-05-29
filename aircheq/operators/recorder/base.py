@@ -10,11 +10,11 @@ import string
 from ..utils import (jst_now, naive_to_JST)
 from ... import userconfig
 
-
 config = userconfig.TomlLoader()
+logger = logging.getLogger(__name__)
+
 class Recorder(object):
     def __init__(self, program, movie=False):
-        self.logger = logging.getLogger("aircheq-recorder")
 
         self.FILENAME_TEMPLATE = "{channel}_{title}_{start:%Y%m%d_%H%M}"
         self.program = program
@@ -39,8 +39,7 @@ class Recorder(object):
 
 
     def record(self):
-        #TODO: log (incl. stdout)
-        self.logger.info("Start Recording: {id}".format(id = self.program.id))
+        logger.debug("Start Recording: {id}".format(id = self.program.id))
         try:
             self.process = subprocess.run(
                     self.command,
@@ -48,11 +47,11 @@ class Recorder(object):
                     check=True)
 
         except subprocess.CalledProcessError as e:
-            self.logger.error("Recording Command Error: {}".format(e))
+            logger.error("Recording Command Error: {}".format(e))
         except:
-            self.logger.error("Unexpected Error until Recording: {}".format(sys.exc_info()[0]))
+            logger.error("Unexpected Error until Recording: {}".format(sys.exc_info()[0]))
         else:
-            self.logger.info("Finish Recording: {}".format(self.program.id))
+            logger.debug("Finish Recording: {}".format(self.program.id))
 
     def get_save_path(self, start):
         name = self.FILENAME_TEMPLATE.format_map({

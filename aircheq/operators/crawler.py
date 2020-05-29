@@ -22,7 +22,7 @@ from ..dbconfig import (create_session, start_session)
 
 engine = create_engine(userconfig.get_db_url(), echo=False)
 Session = create_session(engine)
-logger = logging.getLogger("aircheq-crawler")
+logger = logging.getLogger(__name__)
 
 
 def fetch_with_error_collection(fetch_generator):
@@ -182,6 +182,7 @@ def task_with_retry(max_count=5, retry_interval=datetime.timedelta(seconds=300))
 
 def main():
     # initialize
+    utils.init_logger(userconfig.LOG_DIR.joinpath("crawler.log").resolve())
     store_all_services()
     task_with_retry() # crawl at launch
 

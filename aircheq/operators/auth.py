@@ -13,7 +13,7 @@ import requests
 from .. import userconfig
 from . import utils
 
-
+logger = logging.getLogger(__name__)
 HTTP_ERR_MSG = 'Failed getting Radiko authorization: {step}'
 config = userconfig.TomlLoader()
 class RadikoAuth:
@@ -24,8 +24,7 @@ class RadikoRTMPAuth(RadikoAuth):
     AUTH1_URL = "https://radiko.jp/v2/api/auth1_fms"
     AUTH2_URL = "https://radiko.jp/v2/api/auth2_fms"
 
-    def __init__(self, logger=logging.getLogger(__name__)):
-        self.logger = logger
+    def __init__(self):
         self.player_url = config["radiko"]["player_url"]
         self.PLAYER_PATH = (
                 pathlib.Path(config["radiko"]["tools_dir"])
@@ -65,7 +64,7 @@ class RadikoRTMPAuth(RadikoAuth):
         try:
             auth1_fms.raise_for_status()
         except requests.HTTPError as e:
-            self.logger.error(HTTP_ERR_MSG)
+            logger.error(HTTP_ERR_MSG)
             raise e
 
         OFFSET = int(auth1_fms.headers['x-radiko-keyoffset'])
@@ -83,7 +82,7 @@ class RadikoRTMPAuth(RadikoAuth):
         try:
             auth2_fms.raise_for_status()
         except requests.HTTPError as e:
-            self.logger.error(HTTP_ERR_MSG)
+            logger.error(HTTP_ERR_MSG)
             raise e
 
         content = auth2_fms.content.decode('utf-8')
@@ -94,7 +93,7 @@ class RadikoRTMPAuth(RadikoAuth):
         try:
             req.raise_for_status()
         except requests.HTTPError as e:
-            self.logger.error(HTTP_ERR_MSG)
+            logger.error(HTTP_ERR_MSG)
 
         with open(self.PLAYER_PATH, 'wb') as player:
             player.write(req.content)
@@ -117,8 +116,7 @@ class RadikoRTMPAuth(RadikoAuth):
 
 
 class RadikoHLSAuth(RadikoAuth):
-    def __init__(self, logger=logging.getLogger()):
-        self.logger = logger
+    def __init__(self):
         self.get_authtoken()
 
     def get_authtoken(self):
