@@ -19,7 +19,7 @@ def make_config_skel(path):
     if not dst.exists():
         shutil.copy(skelpath, dst)
 
-def make_default_config_dir(config_dir):
+def make_default_config_dir(config_dir=CONFIG_DIR):
     db_dir = config_dir.joinpath(pathlib.Path('db/'))
     logs_dir = config_dir.joinpath(pathlib.Path('logs/'))
     utils_dir = config_dir.joinpath(pathlib.Path('utils/'))
