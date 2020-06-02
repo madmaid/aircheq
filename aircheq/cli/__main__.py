@@ -10,12 +10,16 @@ from sqlalchemy.engine import create_engine
 from sqlalchemy.orm import sessionmaker
 
 from .. import userconfig
-from ..operators.parsers.model import Program
-from ..operators.parsers.model import Base as ProgramBase
-from ..operators.reserve import Rule
-from ..operators.reserve import Base as RuleBase
+try:
+    from ..operators.parsers.model import Program
+    from ..operators.parsers.model import Base as ProgramBase
+    from ..operators.reserve import Rule
+    from ..operators.reserve import Base as RuleBase
+except userconfig.LoadingConfigFailedError:
+    pass
 
 config = userconfig.TomlLoader()
+logger = logging.getLogger(__name__)
 
 def manual_reserve(program_id, switch=True):
     program = fetch_program_by_id(program_id)
@@ -138,6 +142,9 @@ def create_argparser():
     return root_parser
 
 if __name__ == "__main__":
+    parser = create_argparser()
+    args = parser.parse_args()
+
     try:
         engine = create_engine(config["db"]["guide_url"])
         if not engine.dialect.has_table(engine, Program.__tablename__):
@@ -146,13 +153,15 @@ if __name__ == "__main__":
             RuleBase.metadata.create_all(bind=engine)
         Session = sessionmaker(bind=engine)
         session = Session()
+    except userconfig.LoadingConfigFailedError:
+        if getattr(args, "srcpath", None) is None:
+            # not executed as migrate-config mode.
+            logger.warning("you need migrate userconfig to run operator.")
     except FileNotFoundError as e:
-        logging.warning("user-config is not found")
+        logger.warning("user-config is not found")
     except AttributeError as e:
-        logging.warning("DB URL is not found in user-config")
+        logger.warning("DB URL is not found in user-config")
 
-    parser =  create_argparser()
-    args = parser.parse_args()
     try:
         args.func(args)
     except AttributeError:
