@@ -72,7 +72,7 @@ def init_logger(logpath):
     console.setLevel(logging.INFO)
 
     logger.addHandler(file_handler)
-    # logger.addHandler(console)
+    logger.addHandler(console)
 
     return logger
 
