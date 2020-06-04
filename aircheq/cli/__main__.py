@@ -21,21 +21,21 @@ except userconfig.LoadingConfigFailedError:
 config = userconfig.TomlLoader()
 logger = logging.getLogger(__name__)
 
-def manual_reserve(program_id, switch=True):
+def manual_reserve(session, program_id, switch=True):
     program = fetch_program_by_id(program_id)
     program.is_reserved = switch
     session.commit()
 
-def fetch_guide():
+def fetch_guide(session):
     return session.query(Program).filter(Program.start > datetime.datetime.now()).order_by(Program.start)
 
-def fetch_reserved():
+def fetch_reserved(session):
     return session.query(Program).filter(Program.is_reserved == True).order_by(Program.start)
 
-def fetch_rules():
+def fetch_rules(session):
     return session.query(Rule).order_by(Rule.id)
 
-def fetch_program_by_id(program_id):
+def fetch_program_by_id(session, program_id):
     return session.query(Program).filter_by(id=int(program_id)).one()
 
 def format_program(program):
@@ -52,22 +52,21 @@ def print_table(table, peco=False, headers="keys"):
     kwargs = {"tablefmt": "plain"} if peco else {"headers": headers}
     print(tabulate.tabulate(table, **kwargs))
 
-def print_guide(peco=False):
-    programs = fetch_guide()
+def print_guide(session, peco=False):
+    programs = fetch_guide(session)
     print_table((format_program(p) for p in programs), peco=peco)
 
-def print_rules(peco=False):
-    #print([format_rule(rule).items() for rule in fetch_rules()])
-    print_table((format_rule(r) for r in fetch_rules()),
+def print_rules(session, peco=False):
+    print_table((format_rule(r) for r in fetch_rules(session)),
                 peco=peco,
                 headers=list(Rule.__table__.columns.keys()),
-                )
-def print_reserved(peco=False):
-    programs = fetch_reserved()
+    )
+def print_reserved(session, peco=False):
+    programs = fetch_reserved(session)
     print_table((format_program(p) for p in programs), peco=peco)
 
-def print_program(program_id):
-    program = fetch_program_by_id(program_id)
+def print_program(session, program_id):
+    program = fetch_program_by_id(session, program_id)
 
     for k, v in program.__dict__.items():
         print(k, ":", v)
@@ -100,33 +99,33 @@ def migrate_to_toml(srcpath, dstpath):
         toml.dump(skel, f, encoder=toml.TomlPathlibEncoder())
     
 
-def create_argparser():
+def create_argparser(session):
     root_parser = argparse.ArgumentParser(description="command line interface for aircheq")
     subparsers = root_parser.add_subparsers()
 
     guide = subparsers.add_parser('guide', help='print programs')
     guide.add_argument('--peco', action="store_true")
-    guide.set_defaults(func=print_guide)
+    guide.set_defaults(func=lambda args: print_guide(session))
 
     rules = subparsers.add_parser('rules', help="print rules")
     rules.add_argument('--peco', action="store_true")
-    rules.set_defaults(func=print_rules)
+    rules.set_defaults(func=lambda args: print_rules(session))
 
     program = subparsers.add_parser('program', help='print a program with infomation')
     program.add_argument('program_id', type=str)
-    program.set_defaults(func=lambda args: print_program(args.program_id))
+    program.set_defaults(func=lambda args: print_program(session, args.program_id))
 
     reserve = subparsers.add_parser('reserve', help='reserve a program')
     reserve.add_argument('program_id', type=str)
-    reserve.set_defaults(func=lambda args: manual_reserve(args.program_id, True))
+    reserve.set_defaults(func=lambda args: manual_reserve(session, args.program_id, True))
 
     unreserve = subparsers.add_parser('unreserve', help='cancel reservation')
     unreserve.add_argument('program_id', type=str)
-    unreserve.set_defaults(func=lambda args: manual_reserve(args.program_id, False))
+    unreserve.set_defaults(func=lambda args: manual_reserve(session, args.program_id, False))
 
     reserved = subparsers.add_parser('reserved', help='print reserved programs')
     reserved.add_argument('--peco', action="store_true")
-    reserved.set_defaults(func=print_reserved)
+    reserved.set_defaults(func=lambda args: print_reserved(session))
 
 
     migrate_config = subparsers.add_parser("migrate-config", help="migrate config.py to toml")
@@ -142,11 +141,8 @@ def create_argparser():
     return root_parser
 
 if __name__ == "__main__":
-    parser = create_argparser()
-    args = parser.parse_args()
-
     try:
-        engine = create_engine(config["db"]["guide_url"])
+        engine = create_engine(userconfig.get_db_url())
         if not engine.dialect.has_table(engine, Program.__tablename__):
             ProgramBase.metadata.create_all(bind=engine)
         if not engine.dialect.has_table(engine, Rule.__tablename__):
@@ -154,13 +150,14 @@ if __name__ == "__main__":
         Session = sessionmaker(bind=engine)
         session = Session()
     except userconfig.LoadingConfigFailedError:
-        if getattr(args, "srcpath", None) is None:
-            # not executed as migrate-config mode.
-            logger.warning("you need migrate userconfig to run operator.")
+        logger.warning("you need migrate userconfig to run operator.")
     except FileNotFoundError as e:
         logger.warning("user-config is not found")
     except AttributeError as e:
         logger.warning("DB URL is not found in user-config")
+    parser = create_argparser(session)
+    args = parser.parse_args()
+
 
     try:
         args.func(args)
