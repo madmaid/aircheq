@@ -12,8 +12,8 @@ class Recorder(base.Recorder):
         stream_url = config["agqr"]["stream_url"]
 
         rtmp_template = "rtmpdump -r {url} --live --stop {duration} -o {output}"
-        hls_template = ("ffmpeg -reconnect 1 -reconnect_streamed 1 -reconnect_delay_max 2" + 
-                        " " + "-i {url} -c copy -t {duration} {output}")
+        hls_template = ("ffmpeg -reconnect 1 -reconnect_streamed 1 -reconnect_delay_max 2" +
+                        " " + "-nostdin -i {url} -c copy -t {duration} {output}")
 
         if stream_url.split(".")[-1] == "m3u8":
             cmd_template = hls_template 

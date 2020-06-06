@@ -16,7 +16,7 @@ class Recorder(base.Recorder):
         req = requests.get(config["radiru"]["stream_urls_api"])
         root = lxml.etree.fromstring(req.content)
 
-        CMD_TEMPLATE = ("ffmpeg -reconnect 1 -reconnect_streamed 1 -reconnect_delay_max 2" +
+        CMD_TEMPLATE = ("ffmpeg -reconnect 1 -reconnect_streamed 1 -reconnect_delay_max 2 -nostdin" +
                 " " + "-i {m3u8url} -c copy -t {duration} -f mp4 -bsf:a aac_adtstoasc file:{output}")
         for areakey in root.xpath("//data/areakey"):
             # TODO: support all area at a time
