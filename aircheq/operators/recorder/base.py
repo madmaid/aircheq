@@ -39,7 +39,9 @@ class Recorder(object):
 
 
     def record(self):
-        logger.debug("Start Recording: {id}".format(id = self.program.id))
+        logger.debug("Start Recording: {program.id} {program.service}".format(
+            program = self.program
+        ))
         try:
             self.process = subprocess.run(
                     self.command,
