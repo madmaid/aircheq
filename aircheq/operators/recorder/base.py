@@ -75,4 +75,12 @@ class Recorder(object):
         dur = naive_to_JST(self.program.end) - jst_now() + datetime.timedelta(seconds=10)
         return int(dur.total_seconds())
 
+    def get_ffmpeg_cmd(self):
+        DEFAULT_CMD = "ffmpeg"
+
+        return config["general"]["ffmpeg"] or DEFAULT_CMD
+
+    def get_rtmpdump_cmd(self):
+        DEFAULT_CMD = "rtmpdump"
+        return config["general"]["rtmpdump"] or DEFAULT_CMD
 

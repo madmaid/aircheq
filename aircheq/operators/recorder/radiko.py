@@ -70,7 +70,8 @@ class Recorder(base.Recorder):
 
 
 
-        cmd = ('rtmpdump -r {stream_url} --app {app} --playpath {playpath} -W' + ' ' +
+        cmd = (self.get_rtmpdump_cmd() + " " +
+            '-r {stream_url} --app {app} --playpath {playpath} -W' + ' ' +
             '{player_url} -C S:"" -C S:"" -C S:"" -C S:{authtoken}' + ' ' +
             '--stop {duration} --live -o {output}')
 
@@ -99,7 +100,11 @@ class Recorder(base.Recorder):
         extractor = lambda res: [s for s in res.content.decode().splitlines() if s.endswith(".m3u8")][0]
         url = self._get_stream_url_with_retry(_plurl, extractor, headers)
 
-        cmd = ("ffmpeg -reconnect 1 -reconnect_streamed 1 -reconnect_delay_max 2 -nostdin" +
+        cmd = (self.get_ffmpeg_cmd() +
+                " " + "-nostdin"
+                " " + "-reconnect 1 -reconnect_streamed 1" +
+                " " + "-reconnect_delay_max 2" +
+
                 " " + "-headers 'X-Radiko-Authtoken:{authtoken}'" +
                 " " + "-i {stream_url}" +
                 " " + "-t {duration} -acodec copy {output}")

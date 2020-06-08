@@ -3,6 +3,12 @@
 ## put a directory path for recorded files
 recorded_dir = "~/.aircheq/recorded/"
 
+## you can specify options
+# ffmpeg = "ffmpeg -loglevel verbose"
+
+## also you can specify absolute path to binary
+# rtmpdump = "/usr/bin/rtmpdump"
+
 
 ####################
 # Preference for log
