@@ -13,7 +13,7 @@ class Recorder(base.Recorder):
 
     def __init__(self, program):
         super().__init__(program)
-        req = requests.get(config["radiru"]["stream_urls_api"])
+        req = requests.get(config["radiru"]["stream_xml_url"])
         root = lxml.etree.fromstring(req.content)
 
         CMD_TEMPLATE = (self.get_ffmpeg_cmd() +
