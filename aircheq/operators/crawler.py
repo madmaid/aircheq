@@ -16,7 +16,7 @@ from . import utils
 
 from .utils import jst_now
 from .parsers import model
-from .parsers.model import (Program, Service, Channel, )
+from .parsers.model import (Program, Service, Channel, APIKeyError)
 from .. import userconfig
 from ..dbconfig import (create_session, start_session)
 
@@ -32,6 +32,9 @@ def fetch_with_error_collection(fetch_generator):
             yield from fetch_generator()    # pre-fetch to prevent too long transaction
         except HTTPError as e:
             logger.error("Fetch Error: {}".format(traceback.format_exc()))
+            raise e
+        except APIKeyError as e:
+            logger.error("API Key Error: {}".format(traceback.format_exc()))
             raise e
         except KeyError as e:
             logger.error("JSON KeyError: {}".format(traceback.format_exc()))
@@ -173,10 +176,14 @@ def task_with_retry(max_count=5, retry_interval=datetime.timedelta(seconds=300))
         sch.enterabs(utils.datetime_to_time(dt), 1, task)
         try:
             sch.run()
+        except APIKeyError as e:
+            logger.error("abort.")
+            return
         except Exception as e:
             logger.warning("retry: {}".format(traceback.format_exc()))
             continue    # retry
         else:
+            logger.debug("crawl done.")
             return
 
 
