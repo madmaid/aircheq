@@ -26,7 +26,7 @@ class Recorder(base.Recorder):
             file_ext = ".m2ts"
         else:
             cmd_template = rtmp_template
-            file_ext = "flv"
+            file_ext = ".flv"
         self.command = cmd_template.format_map({
             'url': stream_url,
             'duration': self.duration_from_now(),
