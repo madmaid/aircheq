@@ -134,8 +134,8 @@ class RadikoHLSAuth(RadikoAuth):
             logger.error(HTTP_ERR_MSG.format("auth1"))
             raise e
 
-        offset = int(auth1_res.headers['x-radiko-keyoffset'])
-        keylength = int(auth1_res.headers['x-radiko-keylength'])
+        offset = int(auth1_res.headers['X-Radiko-KeyOffset'])
+        keylength = int(auth1_res.headers['X-Radiko-KeyLength'])
         authtoken = auth1_res.headers["X-Radiko-AuthToken"]
 
         authkey = io.StringIO(config["radiko"]["auth_key"])
