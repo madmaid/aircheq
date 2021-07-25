@@ -214,12 +214,12 @@ def parse_guide(html, date):
 
 
 
-def get_program(url):
+def get_program(url, date):
     req = requests.get(url)
     req.raise_for_status()
 
     try:
-        programs = parse_guide(req.content)
+        programs = parse_guide(req.content, date)
     except Exception as e:
         raise e
 
