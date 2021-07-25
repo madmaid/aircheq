@@ -9,7 +9,7 @@ import logging
 
 import sqlalchemy.exc
 
-from sqlalchemy import or_, and_
+from sqlalchemy import or_, and_, inspect
 from sqlalchemy.engine import create_engine
 from sqlalchemy.orm import sessionmaker
 
@@ -119,12 +119,13 @@ def monitor_reserved(monitor_interval=None):
 def create_tables():
     program_tables = (Program, Service, Channel)
 
-    table_exists = lambda t: engine.dialect.has_table(engine, t.__tablename__)
-    new_models = [t.__table__ for t in program_tables if not table_exists(t)]
+    table_exists = lambda table_name: inspect(engine).has_table(table_name)
+    new_models = [t.__table__ for t in program_tables if not
+            table_exists(t.__tablename__)]
     if new_models != []: 
         model.Base.metadata.create_all(bind=engine, tables=new_models)
 
-    if not table_exists(reserve.Rule):
+    if not table_exists(reserve.Rule.__tablename__):
         reserve.Base.metadata.create_all(bind=engine)
 
 
