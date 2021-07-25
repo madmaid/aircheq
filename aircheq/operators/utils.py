@@ -10,6 +10,18 @@ import pytz
 
 KANJI_WEEKDAYS = ['月', '火', '水', '木', '金', '土', '日']
 
+def parse_time(time_str: str):
+    return re.search('(\d+):(\d+)', time_str).groups()
+
+def datetime_hour_over_24(date: datetime.date, hour: int, minute: int) -> datetime.datetime:
+
+    if hour >= 24:
+        hour = abs(hour - 24)
+        date += datetime.timedelta(days=1)
+
+    return datetime.combine(datetime.date, datetime.time(hour, minute))
+
+
 def weekday_to_date(kanji_weekday, start_day=None):
     """
     KANJI_WEEKDAYS -> datetime.date in 7days from start_day.

@@ -10,7 +10,7 @@ import dateutil.parser
 from ... import userconfig
 from . import model
 
-from ..utils import naive_to_JST
+from ..utils import parse_time, naive_to_JST, datetime_hour_over_24
 
 config = userconfig.TomlLoader()
 def get_channels():
@@ -51,7 +51,7 @@ def table_to_2ddict(table):
 
     return result
 
-def parse_guide(html):
+def parse_old_guide(html: str) -> dict:
     """
     html string => list contains program dict
     """
@@ -146,12 +146,100 @@ def parse_guide(html):
                 })
     return programs
 
-def get_programs(url=None):
+def get_programs_from_old_guide(url=None):
     if url is None:
         url = config["agqr"]["guide_url"]
     req = requests.get(url)
     req.raise_for_status()
 
+
     for dic in parse_guide(req.content):
         yield model.dict_to_program(dic)
+
+def parse_boxed(boxed_table: lxml.html.HtmlElement) -> str:
+    start = boxed.xpath(".//dt")[0].text
+    desc = boxed.xpath(".//div/dd/a")[0].text
+    return start + " " + desc
+
+def parse_guide(html, date):
+
+    # parse once per date
+    root = lxml.html.fromstring(html)
+    programs = root.xpath("//div[@class='block_contents_bg']/article")
+    channel, channel_jp = tuple(get_channels().items())[0]
+
+    for program in programs:
+        times_str = program.xpath(".//h3")[0].text
+        start_str, end_str = times_str.split(" - ")
+
+        start_hour, start_minute = parse_time(start_str)
+        start = datetime_hour_over_24(date, int(start_hour), int(start_minute))
+
+        end_hour, end_minute = parse_time(end_str)
+        end = datetime_hour_over_24(date, int(end_hour), int(end_minute))
+
+        title_element = program.xpath(".//p[@class='dailyProgram-itemTitle']")[0]
+        title = title_element.xpath("./a")[0].attrib["href"]
+        is_movie = bool(title_element.xpath("./a/i")[0])
+
+        personarities = "".join(
+                program.xpath(".//p[@class='dailyProgram-itemPersonality']/a/text()")
+        )
+        description = "".join(
+                program.xpath(".//div[@class='dailyProgram-itemDescription']/text()")
+        )
+        guest = "".join(
+                program.xpath(".//div[@class='dailyProgram-itemGuest']/text()")
+        )
+        boxed_programs = program.xpath(".//dl[@class='dailyProgram-subTable']/div")
+        boxed_info  = "\n".join( parse_boxed for boxed in boxed_programs )
+
+        info = "\n".join(( personarities, description, guest, boxed_info))
+
+        is_repeat = "is-repeat" in program.attrib["class"]
+
+        yield {
+                'service': 'agqr',
+                'channel': channel,
+                'channel_jp': channel_jp,
+                'title': title,
+                'start': start,
+                'end': end,
+                'duration': end - start,
+                'info': info,
+                # "casts": person,
+                'is_repeat': is_repeat,
+                'is_movie': is_movie,
+        }
+
+
+
+def get_program(url):
+    req = requests.get(url)
+    req.raise_for_status()
+
+    try:
+        programs = parse_guide(req.content)
+    except Exception as e:
+        raise e
+
+    for program in programs:
+        yield from model.dict_to_program(program)
+
+def get_programs(url=None):
+    if url is None:
+        url = config["agqr"]["guide_url"]
+
+    if url[-1] != '?':
+        url += '?'
+
+    today = datetime.date.today()
+    available_dates = tuple( today + datetime.timedelta(days=delta) for delta in range(7) )
+
+    for date in available_dates:
+        date_query = date.strftime("%Y%m%d")
+        try:
+            yield from get_program(url + date_query, date)
+        except Exception as e:
+            raise e
 
