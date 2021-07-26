@@ -156,9 +156,9 @@ def get_programs_from_old_guide(url=None):
     for dic in parse_guide(req.content):
         yield model.dict_to_program(dic)
 
-def parse_boxed(boxed_table: lxml.html.HtmlElement) -> str:
-    start = boxed.xpath(".//dt")[0].text
-    desc = boxed.xpath(".//div/dd/a")[0].text
+def parse_boxed(table: lxml.html.HtmlElement) -> str:
+    start = table.xpath(".//dt")[0].text
+    desc = table.xpath(".//div/dd/a")[0].text
     return start + " " + desc
 
 def parse_guide(html, date):
@@ -170,7 +170,7 @@ def parse_guide(html, date):
 
     for program in programs:
         times_str = program.xpath(".//h3")[0].text
-        start_str, end_str = times_str.split(" - ")
+        start_str, end_str = times_str.split("–")
 
         start_hour, start_minute = parse_time(start_str)
         start = datetime_hour_over_24(date, int(start_hour), int(start_minute))
@@ -179,8 +179,8 @@ def parse_guide(html, date):
         end = datetime_hour_over_24(date, int(end_hour), int(end_minute))
 
         title_element = program.xpath(".//p[@class='dailyProgram-itemTitle']")[0]
-        title = title_element.xpath("./a")[0].attrib["href"]
-        is_movie = bool(title_element.xpath("./a/i")[0])
+        title = title_element.xpath("./a")[0].text
+        is_movie = len(title_element.xpath("./a/i")) > 0
 
         personarities = "".join(
                 program.xpath(".//p[@class='dailyProgram-itemPersonality']/a/text()")
@@ -192,7 +192,7 @@ def parse_guide(html, date):
                 program.xpath(".//div[@class='dailyProgram-itemGuest']/text()")
         )
         boxed_programs = program.xpath(".//dl[@class='dailyProgram-subTable']/div")
-        boxed_info  = "\n".join( parse_boxed for boxed in boxed_programs )
+        boxed_info  = "\n".join( parse_boxed(boxed) for boxed in boxed_programs )
 
         info = "\n".join(( personarities, description, guest, boxed_info))
 
@@ -203,8 +203,8 @@ def parse_guide(html, date):
                 'channel': channel,
                 'channel_jp': channel_jp,
                 'title': title,
-                'start': start,
-                'end': end,
+                'start': naive_to_JST(start),
+                'end': naive_to_JST(end),
                 'duration': end - start,
                 'info': info,
                 # "casts": person,
@@ -219,12 +219,12 @@ def get_program(url, date):
     req.raise_for_status()
 
     try:
-        programs = parse_guide(req.content, date)
+        programs = parse_guide(req.text, date)
     except Exception as e:
         raise e
 
     for program in programs:
-        yield from model.dict_to_program(program)
+        yield model.dict_to_program(program)
 
 def get_programs(url=None):
     if url is None:
