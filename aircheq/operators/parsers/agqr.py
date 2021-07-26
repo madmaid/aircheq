@@ -233,8 +233,11 @@ def get_programs(url=None):
     if url[-1] != '?':
         url += '?'
 
-    today = datetime.date.today()
-    available_dates = tuple( today + datetime.timedelta(days=delta) for delta in range(7) )
+    now = datetime.datetime.now()
+    if now.hour < 5:
+        # workaround for 24:00-29:00
+        now -= datetime.timedelta(days=1)
+    available_dates = tuple( now.date + datetime.timedelta(days=delta) for delta in range(7) )
 
     for date in available_dates:
         date_query = date.strftime("%Y%m%d")
