@@ -4,6 +4,7 @@ import datetime
 import logging
 import collections
 import pathlib
+import re
 
 import pytz
 
@@ -19,7 +20,7 @@ def datetime_hour_over_24(date: datetime.date, hour: int, minute: int) -> dateti
         hour = abs(hour - 24)
         date += datetime.timedelta(days=1)
 
-    return datetime.combine(datetime.date, datetime.time(hour, minute))
+    return datetime.datetime.combine(date, datetime.time(hour, minute))
 
 
 def weekday_to_date(kanji_weekday, start_day=None):
