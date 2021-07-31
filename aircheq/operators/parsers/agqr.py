@@ -237,10 +237,10 @@ def get_programs(url=None):
     if now.hour < 5:
         # workaround for 24:00-29:00
         now -= datetime.timedelta(days=1)
-    available_dates = tuple( now.date + datetime.timedelta(days=delta) for delta in range(7) )
+    available_dates = tuple( now.date() + datetime.timedelta(days=delta) for delta in range(7) )
 
     for date in available_dates:
-        date_query = date.strftime("%Y%m%d")
+        date_query = 'date=' + date.strftime("%Y%m%d")
         try:
             yield from get_program(url + date_query, date)
         except Exception as e:
