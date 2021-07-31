@@ -161,6 +161,19 @@ def parse_boxed(table: lxml.html.HtmlElement) -> str:
     desc = table.xpath(".//div/dd/a")[0].text
     return start + " " + desc
 
+def parse_description(program_elem: lxml.html.HtmlElement) -> str:
+    xpath_base = ".//div[contains(@class, 'dailyProgram-itemDescription')]"
+
+    xpath_root = xpath_base + "/text()"
+    xpath_nested = xpath_base + "/div/text()"
+
+    description = (
+        "".join(program_elem.xpath(xpath_root)) +
+        "\n".join(program_elem.xpath(xpath_nested))
+    )
+    return description.strip()
+
+
 def parse_guide(html, date):
 
     # parse once per date
@@ -185,10 +198,8 @@ def parse_guide(html, date):
         personarities = "".join(
                 program.xpath(".//p[@class='dailyProgram-itemPersonality']/a/text()")
         )
-        description = "".join(
-                program.xpath(".//div[@class='dailyProgram-itemDescription']/text()")
-        )
-        guest = "".join(
+        description = parse_description(program)
+        guest = " ".join(
                 program.xpath(".//div[@class='dailyProgram-itemGuest']/text()")
         )
         boxed_programs = program.xpath(".//dl[@class='dailyProgram-subTable']/div")
