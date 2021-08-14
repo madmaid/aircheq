@@ -1,0 +1,17 @@
+version: "3.7"
+
+services:
+  aircheq_operator:
+    build:
+      context: ../
+      dockerfile: ./docker/Dockerfile
+      target: operator_stage
+    image: aircheq_operator:latest
+
+  aircheq_web:
+    build:
+      context: ../
+      dockerfile: ./docker/Dockerfile
+      target: web_stage
+    image: aircheq_web:latest
+

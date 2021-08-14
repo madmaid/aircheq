@@ -26,7 +26,6 @@ Recorder for Japanese streaming radio service
     poetry run python -m aircheq.web    # Start Web Server
 ```
 you need to configure `~/.aircheq/config.toml`
-also see the section configure.
 
 ## Configure
 
@@ -48,6 +47,30 @@ you can also change a path where recorded saved
 [general]
 recorded_dir = "/path/to/your/recorded/directory"
 ```
+
+## Install and run with Docker Compose
+
+```bash
+    cd /path/to/project_root
+
+    # edit the config
+    cp ./config.toml.skel ./docker/config/config.toml
+    $EDITOR ./docker/config/config.toml
+
+    # add your UID and GID to .env file for docker
+    touch ./docker/.env
+    echo HOST_UID=$(id -u $USER) >> ./docker/.env
+    echo HOST_GID=$(id -g $USER) >> ./docker/.env
+
+    # execute
+    docker-compose -f ./docker-compose.build.yml build
+    docker-compose -f ./docker-compose.yml up -d
+
+    # stop
+    docker-compose -f ./docker-compose.yml down
+
+```
+
 
 ## Migrate from config.py to config.toml
 ```bash

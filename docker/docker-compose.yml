@@ -1,0 +1,30 @@
+version: "3.7"
+
+services:
+  aircheq_operator:
+    image: aircheq_operator:latest
+    volumes:
+        - type: bind
+          source: "./config"
+          target: "/home/aircheq/.aircheq"
+    environment:
+      - HOST_UID
+      - HOST_GID
+      - TZ=Asia/Tokyo
+    restart: always
+
+  aircheq_web:
+    image: aircheq_web:latest
+    volumes:
+      - type: bind
+        source: "./config"
+        target: "/home/aircheq/.aircheq"
+    expose:
+      - "5000"
+    ports:
+      - "44100:5000"
+    environment:
+      - HOST_UID
+      - HOST_GID
+      - TZ=Asia/Tokyo
+    restart: always

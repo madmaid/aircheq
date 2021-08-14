@@ -1,10 +1,16 @@
+.envrc
 .python-version
 venv_aircheq/
 __pycache__/
 .cache/
 .pytest_cache/
-.venv/
+.venv*/
 .bak/
 *.egg-info/
 .direnv/
+
+docker/.env
+docker/config/*
+!docker/config/.gitkeep
+
 
