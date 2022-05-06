@@ -9,7 +9,11 @@ from sqlalchemy import or_, and_
 from sqlalchemy.engine import create_engine
 from sqlalchemy.orm import scoped_session, sessionmaker
 
-from .. import (userconfig, dbconfig)
+from .. import (
+    userconfig,
+    dbconfig,
+    args
+)
 from ..operators.parsers.model import (
         Program,
         Service,
@@ -21,6 +25,14 @@ from ..operators import reserve
 THIS_DIR = pathlib.PosixPath(__file__).parent
 TEMPLATE_DIR = THIS_DIR.joinpath(pathlib.PurePosixPath("aircheq_wui/"))
 STATIC_DIR = TEMPLATE_DIR.joinpath(pathlib.PurePosixPath("dist/"))
+
+
+argparser = args.create_argparser()
+config_dir = argparser.parse_args().config_dir.expanduser()
+config_pathes = userconfig.AircheqDir(config_dir)
+config = userconfig.TomlLoader(config_pathes)
+engine = create_engine(userconfig.get_db_url(config), echo=True)
+Session = dbconfig.create_session(engine)
 
 app = Flask('aircheq-api',
         template_folder=str(TEMPLATE_DIR),
@@ -43,8 +55,6 @@ class ISOFormatDateTimeJSONEncoder(JSONEncoder):
 app.json_encoder = ISOFormatDateTimeJSONEncoder
 
 
-engine = create_engine(userconfig.get_db_url(), echo=True)
-Session = dbconfig.create_session(engine)
 
 def strip_underscore_attr(model_vars):
     return { k : v for k, v in model_vars.items() if not k.startswith("_")}

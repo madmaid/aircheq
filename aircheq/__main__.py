@@ -15,6 +15,7 @@ from sqlalchemy.orm import sessionmaker
 
 
 from . import (userconfig, dbconfig)
+from .args import create_argparser
 from .dbconfig import start_session
 from .operators import (reserve, crawler, recorder)
 from .operators.utils import (jst_now, time_intervals, init_logger, datetime_to_time)
@@ -131,6 +132,13 @@ def create_tables():
 
 
 def main():
+    argparser = create_argparser()
+    args = argparser.parse_args()
+
+    if args.config_dir is not None:
+        config_dir = args.config_dir.expanduser()
+    else:
+        config_dir = userconfig.DEFAULT_CONFIG_DIR
     # mkdir config/
     userconfig.make_default_config_dir()
 

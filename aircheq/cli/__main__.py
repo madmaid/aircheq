@@ -10,6 +10,7 @@ from sqlalchemy.engine import create_engine
 from sqlalchemy.orm import sessionmaker
 
 from .. import userconfig
+from ..args import create_argparser as create_rootparser
 try:
     from ..operators.parsers.model import Program
     from ..operators.parsers.model import Base as ProgramBase
@@ -97,10 +98,12 @@ def migrate_to_toml(srcpath, dstpath):
         
     with dst.open(mode='w') as f:
         toml.dump(skel, f, encoder=toml.TomlPathlibEncoder())
-    
 
-def create_argparser(session):
-    root_parser = argparse.ArgumentParser(description="command line interface for aircheq")
+
+def create_argparser():
+    root_parser = create_rootparser()
+    root_parser.description = "command line interface for aircheq"
+
     subparsers = root_parser.add_subparsers()
 
     guide = subparsers.add_parser('guide', help='print programs')
@@ -141,6 +144,8 @@ def create_argparser(session):
     return root_parser
 
 if __name__ == "__main__":
+    parser = create_argparser()
+    args = parser.parse_args()
     try:
         engine = create_engine(userconfig.get_db_url())
         if not engine.dialect.has_table(engine, Program.__tablename__):
