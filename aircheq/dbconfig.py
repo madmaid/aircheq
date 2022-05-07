@@ -14,8 +14,8 @@ from sqlalchemy.ext.declarative import declarative_base
 
 from . import userconfig
 
-config = userconfig.TomlLoader()
 logger = logging.getLogger(__name__)
+
 
 def check_current_head(alembic_cfg, connectable):
     """
@@ -27,7 +27,7 @@ def check_current_head(alembic_cfg, connectable):
         return set(context.get_current_heads()) == set(directory.get_heads())
 
 
-def migrate_to_head(engine):
+def migrate_to_head(engine, config):
 
     current_dir = str(pathlib.PosixPath(".").absolute())
     ini_path = current_dir / pathlib.PurePosixPath("alembic.ini")
@@ -46,8 +46,8 @@ def migrate_to_head(engine):
     logger.debug("try to upgrade DB")
 
     args = "-x db_url={db_url} --raiseerr upgrade head".format(
-                db_url = userconfig.get_db_url()
-            ).split(' ')
+        db_url=userconfig.get_db_url(config)
+    ).split(' ')
     alembic.config.main(args)
 
     logger.debug("DB revision is up-to-date.")

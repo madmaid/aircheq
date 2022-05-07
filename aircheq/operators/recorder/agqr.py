@@ -1,15 +1,15 @@
 from ... import userconfig
 from . import base
 
-config = userconfig.TomlLoader()
+
 class Recorder(base.Recorder):
-    def __init__(self, program, movie=True):
+    def __init__(self, config: userconfig.ConfigLoader, program, movie=True):
         """
         duration: int of millisec
         """
 
-        super().__init__(program, movie)
-        stream_url = config["agqr"]["stream_url"]
+        super().__init__(config, program, movie)
+        stream_url = self.config["agqr"]["stream_url"]
 
         rtmp_template = (self.get_rtmpdump_cmd() +  " " +
                         "-r {url} --live --stop {duration} -o {output}")

@@ -10,13 +10,7 @@ from sqlalchemy.orm import relationship
 from ...dbconfig import Base 
 from ..utils import (jst_now, naive_to_JST)
 
-class APIResultEmptyError(Exception):
-    def __init__(self, message):
-        self.message = message
 
-class APIKeyError(Exception):
-    def __init__(self, message):
-        self.message = message
 
 
 class Program(Base):

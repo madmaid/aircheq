@@ -15,7 +15,8 @@ from . import utils
 
 logger = logging.getLogger(__name__)
 HTTP_ERR_MSG = 'Failed getting Radiko authorization: {step}'
-config = userconfig.TomlLoader()
+
+
 class RadikoAuth:
     def get_area(self):
         self.get_authtoken()
@@ -24,15 +25,17 @@ class RadikoRTMPAuth(RadikoAuth):
     AUTH1_URL = "https://radiko.jp/v2/api/auth1_fms"
     AUTH2_URL = "https://radiko.jp/v2/api/auth2_fms"
 
-    def __init__(self):
-        self.player_url = config["radiko"]["player_url"]
-        self.PLAYER_PATH = (
-                pathlib.Path(config["radiko"]["tools_dir"])
-                    .joinpath('player').expanduser().absolute()
+    def __init__(self, config):
+
+        self.config = config
+        self.player_url = self.config["radiko"]["player_url"]
+        self.player_path = (
+            pathlib.Path(self.config["radiko"]["tools_dir"])
+            .joinpath('player').expanduser().absolute()
         )
-        self.KEY_PATH = (
-                pathlib.Path(config["radiko"]["tools_dir"])
-                    .joinpath('key').expanduser().absolute()
+        self.key_path = (
+            pathlib.Path(self.config["radiko"]["tools_dir"])
+            .joinpath('key').expanduser().absolute()
         )
 
         self.headers = {
@@ -45,16 +48,15 @@ class RadikoRTMPAuth(RadikoAuth):
 
     def gen_partialkey(self, offset, keylength):
         try:
-            should_get_key = ( not os.path.exists(self.KEY_PATH) 
-                            or os.path.getsize(self.KEY_PATH == 0))
+            should_get_key = (not os.path.exists(self.key_path)
+                              or os.path.getsize(self.key_path == 0))
         except:
             raise
-                
+
         if should_get_key:
             self.get_key()
 
-
-        with open(self.KEY_PATH, 'rb') as key:
+        with open(self.key_path, 'rb') as key:
             key.seek(offset)
             partial_key = base64.b64encode(key.read(keylength))
         return partial_key
@@ -95,32 +97,33 @@ class RadikoRTMPAuth(RadikoAuth):
         except requests.HTTPError as e:
             logger.error(HTTP_ERR_MSG)
 
-        with open(self.PLAYER_PATH, 'wb') as player:
+        with open(self.player_path, 'wb') as player:
             player.write(req.content)
 
     def get_key(self):
-        if not os.path.exists(self.PLAYER_PATH):
+        if not os.path.exists(self.player_path):
             self.get_player()
 
-        cmd = "swfextract -b 12 {PLAYER_PATH} -o {KEY_PATH}".format_map({
-                "PLAYER_PATH": self.PLAYER_PATH,
-                "KEY_PATH": self.KEY_PATH,
-            }).split(" ")
+        cmd = "swfextract -b 12 {player_path} -o {key_path}".format_map({
+            "player_path": self.player_path,
+            "key_path": self.key_path,
+        }).split(" ")
         subprocess.run(cmd, check=True)
 
     def get_authtoken(self):
-        if not os.path.exists(self.KEY_PATH):
+        if not os.path.exists(self.key_path):
             self.get_key()
         self.auth_fms()
         return self.authtoken
 
 
 class RadikoHLSAuth(RadikoAuth):
-    def __init__(self):
+    def __init__(self, config):
+        self.config = config
         self.get_authtoken()
 
     def get_authtoken(self):
-        auth1_url = config["radiko"]["auth1_url"]
+        auth1_url = self.config["radiko"]["auth1_url"]
         headers = {
                 'X-Radiko-App': 'pc_html5',
                 'X-Radiko-App-Version': '0.0.1',
@@ -138,7 +141,7 @@ class RadikoHLSAuth(RadikoAuth):
         keylength = int(auth1_res.headers['X-Radiko-KeyLength'])
         authtoken = auth1_res.headers["X-Radiko-AuthToken"]
 
-        authkey = io.StringIO(config["radiko"]["auth_key"])
+        authkey = io.StringIO(self.config["radiko"]["auth_key"])
         authkey.seek(offset)
         partial_key = base64.b64encode(authkey.read(keylength).encode("utf-8"))
 
@@ -148,7 +151,7 @@ class RadikoHLSAuth(RadikoAuth):
                 "X-Radiko-PartialKey": partial_key,
         })
 
-        auth2_url = config["radiko"]["auth2_url"]
+        auth2_url = self.config["radiko"]["auth2_url"]
         auth2_res = requests.get(auth2_url, headers=auth2_headers)
 
         try:

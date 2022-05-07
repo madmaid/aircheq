@@ -4,8 +4,8 @@ import time
 import sched
 import multiprocessing
 
+import pathlib
 import logging
-
 
 import sqlalchemy.exc
 
@@ -19,21 +19,20 @@ from .args import create_argparser
 from .dbconfig import start_session
 from .operators import (reserve, crawler, recorder)
 from .operators.utils import (jst_now, time_intervals, init_logger, datetime_to_time)
+from .operators import (reserve, crawler, recorder as recorder_modules)
 from .operators.parsers import model
 from .operators.parsers.model import (Program, Service, Channel)
 
-engine = create_engine(userconfig.get_db_url(), echo=False)
-Session = dbconfig.create_session(engine)
 
-MONITOR_INTERVAL = 5 #sec
+MONITOR_INTERVAL = 5  # sec
 
 logger = logging.getLogger(__name__)
 
-def create_recorder(program):
-    r = getattr(recorder, program.service)
-    return r.Recorder(program)
 
-def finalize(program):
+def create_recorder(config: userconfig.ConfigLoader, program: Program):
+    r = getattr(recorder_modules, program.service)
+    return r.Recorder(config, program)
+def finalize(Session, program: Program):
     with start_session(Session) as session:
         _program = session.merge(program)
         session.add(_program)
@@ -43,7 +42,7 @@ def finalize(program):
         _program.is_reserved = False
 
 
-def record(recorder, program):
+def record(Session, recorder: recorder_modules.base.Recorder, program: Program):
     with start_session(Session) as session:
         _program = session.merge(program)
         session.add(_program)
@@ -57,17 +56,19 @@ def record(recorder, program):
 
     except KeyboardInterrupt:
         logger.warning("Stopped recording by KeyboardInterrupt: {}".format(_program.id))
-        finalize(program)
+        finalize(Session, program)
     except Exception as e:
         logger.error("Stopped recording by Unexpected: {pid}, {err}".format(
             pid=_program.id, err=e)
         )
-    finalize(program)
+    finalize(Session, program)
 
 
-def record_reserved(monitor_interval=None):
-    if monitor_interval is None:
-        monitor_interval = MONITOR_INTERVAL
+def record_reserved(
+        Session,
+        config: userconfig.ConfigLoader,
+        monitor_interval: int = MONITOR_INTERVAL
+):
     criteria = and_(
         Program.end > jst_now(),
         or_(
@@ -94,30 +95,36 @@ def record_reserved(monitor_interval=None):
         # start process before 5 secs from Program.start
         if by_start < datetime.timedelta(seconds=monitor_interval):
 
+            r = create_recorder(config, p)
 
-            r = create_recorder(p)
 
-            process = multiprocessing.Process(target=record, args=(r, p), name=p.id)
+            process = multiprocessing.Process(
+                target=record, args=(Session, r, p), name=p.id)
             process.start()
 
             msg = "Create Process: {}, {}".format(process, p.service)
             logger.debug(msg)
 
 
-def monitor_reserved(monitor_interval=None):
-    logger = init_logger(userconfig.LOG_DIR.joinpath("recorder.log").resolve())
+def monitor_reserved(
+        Session,
+        config: userconfig.ConfigLoader,
+        log_dir: pathlib.Path,
+        monitor_interval: int = MONITOR_INTERVAL
+):
+    logger = init_logger(log_dir.joinpath("recorder.log").resolve())
     logger.debug("Start Watching DB")
 
-    if monitor_interval is None:
-        monitor_interval = MONITOR_INTERVAL
     # initialize
     sch = sched.scheduler(time.time)
     # main loop
     for dt in time_intervals(datetime.timedelta(seconds=monitor_interval)):
-        sch.enterabs(datetime_to_time(dt), 1, record_reserved)
+        sch.enterabs(datetime_to_time(dt), 1,
+                     lambda: record_reserved(Session, config, monitor_interval))
         sch.run()
 
-def create_tables():
+
+def create_tables(engine):
     program_tables = (Program, Service, Channel)
 
     table_exists = lambda table_name: inspect(engine).has_table(table_name)
@@ -139,21 +146,33 @@ def main():
         config_dir = args.config_dir.expanduser()
     else:
         config_dir = userconfig.DEFAULT_CONFIG_DIR
+
+    config_pathes = userconfig.AircheqDir(config_dir)
+    config = userconfig.TomlLoader(config_pathes)
     # mkdir config/
-    userconfig.make_default_config_dir()
+    #  userconfig.make_default_config_dir()
 
     # migrate DB
-    dbconfig.migrate_to_head(engine)
-    create_tables()
-
+    engine = create_engine(userconfig.get_db_url(config), echo=False)
+    Session = dbconfig.create_session(engine)
+    dbconfig.migrate_to_head(engine, config)
+    create_tables(engine)
 
     # create main processes
-    _crawler = multiprocessing.Process(target=crawler.main, name='crawler')
-    _recorder = multiprocessing.Process(target=monitor_reserved, name='recorder')
+    _crawler = multiprocessing.Process(
+        target=crawler.execute, args=(config_pathes, ), name='crawler')
+    recorder = multiprocessing.Process(
+        target=monitor_reserved,
+        args=(
+            Session, config, config_pathes.log_dir
+        ),
+        name='recorder'
+    )
 
     _crawler.start()
 
-    _recorder.start()
+    recorder.start()
+
 
 if __name__ == '__main__':
     main()

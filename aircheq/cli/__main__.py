@@ -2,6 +2,7 @@ import argparse
 import datetime
 import logging
 import pathlib
+import sys
 
 import tabulate
 import toml
@@ -19,8 +20,8 @@ try:
 except userconfig.LoadingConfigFailedError:
     pass
 
-config = userconfig.TomlLoader()
 logger = logging.getLogger(__name__)
+
 
 def manual_reserve(session, program_id, switch=True):
     program = fetch_program_by_id(program_id)
@@ -53,24 +54,34 @@ def print_table(table, peco=False, headers="keys"):
     kwargs = {"tablefmt": "plain"} if peco else {"headers": headers}
     print(tabulate.tabulate(table, **kwargs))
 
-def print_guide(session, peco=False):
+
+def print_guide(Session, peco=False):
+    session = Session
     programs = fetch_guide(session)
     print_table((format_program(p) for p in programs), peco=peco)
 
-def print_rules(session, peco=False):
+
+def print_rules(Session, peco=False):
+    session = Session()
     print_table((format_rule(r) for r in fetch_rules(session)),
                 peco=peco,
                 headers=list(Rule.__table__.columns.keys()),
-    )
-def print_reserved(session, peco=False):
+                )
+
+
+def print_reserved(Session, peco=False):
+    session = Session()
     programs = fetch_reserved(session)
     print_table((format_program(p) for p in programs), peco=peco)
 
-def print_program(session, program_id):
+
+def print_program(Session, program_id):
+    session = Session()
     program = fetch_program_by_id(session, program_id)
 
     for k, v in program.__dict__.items():
         print(k, ":", v)
+
 
 def migrate_to_toml(srcpath, dstpath):
     d = dict()
@@ -108,64 +119,70 @@ def create_argparser():
 
     guide = subparsers.add_parser('guide', help='print programs')
     guide.add_argument('--peco', action="store_true")
-    guide.set_defaults(func=lambda args: print_guide(session))
+    guide.set_defaults(func=lambda args: print_guide(Session))
 
     rules = subparsers.add_parser('rules', help="print rules")
     rules.add_argument('--peco', action="store_true")
-    rules.set_defaults(func=lambda args: print_rules(session))
+    rules.set_defaults(func=lambda args: print_rules(Session))
 
-    program = subparsers.add_parser('program', help='print a program with infomation')
+    program = subparsers.add_parser(
+        'program', help='print a program with infomation')
     program.add_argument('program_id', type=str)
-    program.set_defaults(func=lambda args: print_program(session, args.program_id))
+    program.set_defaults(
+        func=lambda args: print_program(Session, args.program_id))
 
     reserve = subparsers.add_parser('reserve', help='reserve a program')
     reserve.add_argument('program_id', type=str)
-    reserve.set_defaults(func=lambda args: manual_reserve(session, args.program_id, True))
+    reserve.set_defaults(func=lambda args: manual_reserve(
+        Session, args.program_id, True))
 
     unreserve = subparsers.add_parser('unreserve', help='cancel reservation')
     unreserve.add_argument('program_id', type=str)
-    unreserve.set_defaults(func=lambda args: manual_reserve(session, args.program_id, False))
+    unreserve.set_defaults(func=lambda args: manual_reserve(
+        Session, args.program_id, False))
 
-    reserved = subparsers.add_parser('reserved', help='print reserved programs')
+    reserved = subparsers.add_parser(
+        'reserved', help='print reserved programs')
     reserved.add_argument('--peco', action="store_true")
-    reserved.set_defaults(func=lambda args: print_reserved(session))
+    reserved.set_defaults(func=lambda args: print_reserved(Session))
 
-
-    migrate_config = subparsers.add_parser("migrate-config", help="migrate config.py to toml")
+    migrate_config = subparsers.add_parser(
+        "migrate-config", help="migrate config.py to toml")
     migrate_config.add_argument('srcpath', type=pathlib.Path)
     migrate_config.add_argument('dstpath', type=pathlib.Path)
 
     migrate_config.set_defaults(
-            func=lambda args: migrate_to_toml(args.srcpath, args.dstpath),
-            srcpath=userconfig.CONFIG_DIR.joinpath("config.py"),
-            dstpath=userconfig.CONFIG_DIR,
+        func=lambda args: migrate_to_toml(args.srcpath, args.dstpath),
+        srcpath=userconfig.CONFIG_DIR.joinpath("config.py"),
+        dstpath=userconfig.CONFIG_DIR,
     )
 
     return root_parser
 
+
 if __name__ == "__main__":
     parser = create_argparser()
     args = parser.parse_args()
+    config = userconfig.TomlLoader(
+        config_pathes=userconfig.AircheqDir(config_dir))
+
     try:
-        engine = create_engine(userconfig.get_db_url())
+        engine = create_engine(userconfig.get_db_url(config))
         if not engine.dialect.has_table(engine, Program.__tablename__):
             ProgramBase.metadata.create_all(bind=engine)
         if not engine.dialect.has_table(engine, Rule.__tablename__):
             RuleBase.metadata.create_all(bind=engine)
         Session = sessionmaker(bind=engine)
-        session = Session()
     except userconfig.LoadingConfigFailedError:
         logger.warning("you need migrate userconfig to run operator.")
-    except FileNotFoundError as e:
+        sys.exit()
+    except FileNotFoundError:
         logger.warning("user-config is not found")
-    except AttributeError as e:
-        logger.warning("DB URL is not found in user-config")
-    parser = create_argparser(session)
-    args = parser.parse_args()
-
-
-    try:
-        args.func(args)
+        sys.exit()
     except AttributeError:
-        parser.print_usage()
-
+        logger.warning("DB URL is not found in user-config")
+        sys.exit()
+        try:
+            args.func(args)
+        except AttributeError:
+            parser.print_usage()

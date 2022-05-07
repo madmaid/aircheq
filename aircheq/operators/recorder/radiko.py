@@ -1,9 +1,10 @@
 #! /usr/bin/python
 # -*- coding: utf-8 -*-
 
-import datetime
 import urllib.parse
 import logging
+import typing
+
 import lxml.etree
 import requests
 
@@ -12,29 +13,32 @@ from .. import auth
 from . import base
 
 logger = logging.getLogger(__name__)
-config = userconfig.TomlLoader()
-class Recorder(base.Recorder):
-    PLAYER_URL = config["radiko"]["player_url"]
-    def __init__(self, program):
-        super().__init__(program)
 
-        plurl = config["radiko"]["playlist_url"]
-        xml_plurl = config["radiko"]["stream_xml_url"]
+
+class Recorder(base.Recorder):
+    authtoken: typing.Type[auth.RadikoAuth]
+
+    def __init__(self, config: userconfig.ConfigLoader, program):
+        super().__init__(config, program)
+        player_url = self.config["radiko"]["player_url"]
+
+        plurl = self.config["radiko"]["playlist_url"]
+        xml_plurl = self.config["radiko"]["stream_xml_url"]
 
         if plurl is None and xml_plurl is None:
-            logger.error("No Radiko stream url found")
+            logger.error("No Radiko stream url found on the user config.")
             return
 
         if plurl is not None:
             # HLS
-            self.auth = auth.RadikoHLSAuth()
+            self.auth = auth.RadikoHLSAuth(self.config)
             self.authtoken = self.auth.authtoken
 
             self._init_hls(plurl, program)
 
         else:
             # RTMP
-            self.auth = auth.RadikoRTMPAuth()
+            self.auth = auth.RadikoRTMPAuth(self.config)
             self.authtoken = self.auth.get_authtoken()
 
             self._init_rtmp(xml_plurl.format_map({
@@ -79,7 +83,7 @@ class Recorder(base.Recorder):
                 "stream_url": self.stream_url,
                 "app": self.app,
                 "playpath": self.playpath,
-                "player_url": self.PLAYER_URL,
+                "player_url": self.player_url,
                 "authtoken": self.authtoken,
                 "duration": self.duration_from_now(),
                 "output": str(self.get_save_path(self.program.start)) + EXT
