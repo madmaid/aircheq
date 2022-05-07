@@ -6,12 +6,11 @@ import subprocess
 import base64
 import logging
 
-import io 
+import io
 
 import requests
 
 from .. import userconfig
-from . import utils
 
 logger = logging.getLogger(__name__)
 HTTP_ERR_MSG = 'Failed getting Radiko authorization: {step}'
@@ -21,6 +20,8 @@ class RadikoAuth:
     def get_area(self):
         self.get_authtoken()
         return self.area
+
+
 class RadikoRTMPAuth(RadikoAuth):
     AUTH1_URL = "https://radiko.jp/v2/api/auth1_fms"
     AUTH2_URL = "https://radiko.jp/v2/api/auth2_fms"
@@ -39,12 +40,12 @@ class RadikoRTMPAuth(RadikoAuth):
         )
 
         self.headers = {
-                'pragma': 'no-cache',
-                'X-Radiko-App': 'pc_ts',
-                'X-Radiko-App-Version': '4.0.0',
-                'X-Radiko-User': 'test-stream',
-                'X-Radiko-Device': 'pc'
-                }
+            'pragma': 'no-cache',
+            'X-Radiko-App': 'pc_ts',
+            'X-Radiko-App-Version': '4.0.0',
+            'X-Radiko-User': 'test-stream',
+            'X-Radiko-Device': 'pc'
+        }
 
     def gen_partialkey(self, offset, keylength):
         try:
@@ -62,7 +63,8 @@ class RadikoRTMPAuth(RadikoAuth):
         return partial_key
 
     def auth_fms(self):
-        auth1_fms = requests.post(self.AUTH1_URL, headers=self.headers, cookies=dict())
+        auth1_fms = requests.post(
+            self.AUTH1_URL, headers=self.headers, cookies=dict())
         try:
             auth1_fms.raise_for_status()
         except requests.HTTPError as e:
@@ -75,12 +77,13 @@ class RadikoRTMPAuth(RadikoAuth):
 
         auth2_headers = self.headers.copy()
         auth2_headers.update({
-                'X-Radiko-AuthToken': auth1_fms.headers['x-radiko-authtoken'],
-                'X-Radiko-PartialKey': partialkey
-                })
+            'X-Radiko-AuthToken': auth1_fms.headers['x-radiko-authtoken'],
+            'X-Radiko-PartialKey': partialkey
+        })
         self.authtoken = auth1_fms.headers['x-radiko-authtoken']
 
-        auth2_fms = requests.post(self.AUTH2_URL, headers=auth2_headers, cookies=dict())
+        auth2_fms = requests.post(
+            self.AUTH2_URL, headers=auth2_headers, cookies=dict())
         try:
             auth2_fms.raise_for_status()
         except requests.HTTPError as e:
@@ -125,11 +128,11 @@ class RadikoHLSAuth(RadikoAuth):
     def get_authtoken(self):
         auth1_url = self.config["radiko"]["auth1_url"]
         headers = {
-                'X-Radiko-App': 'pc_html5',
-                'X-Radiko-App-Version': '0.0.1',
-                'X-Radiko-User': 'dummy_user',
-                'X-Radiko-Device': 'pc'
-                }
+            'X-Radiko-App': 'pc_html5',
+            'X-Radiko-App-Version': '0.0.1',
+            'X-Radiko-User': 'dummy_user',
+            'X-Radiko-Device': 'pc'
+        }
         auth1_res = requests.get(auth1_url, headers=headers)
         try:
             auth1_res.raise_for_status()
@@ -147,8 +150,8 @@ class RadikoHLSAuth(RadikoAuth):
 
         auth2_headers = headers
         auth2_headers.update({
-                "X-Radiko-AuthToken": authtoken,
-                "X-Radiko-PartialKey": partial_key,
+            "X-Radiko-AuthToken": authtoken,
+            "X-Radiko-PartialKey": partial_key,
         })
 
         auth2_url = self.config["radiko"]["auth2_url"]
@@ -162,4 +165,3 @@ class RadikoHLSAuth(RadikoAuth):
 
         self.authtoken = authtoken
         self.area = auth2_res.text.split(',')[0]
-

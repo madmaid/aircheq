@@ -56,7 +56,7 @@ class Recorder(base.Recorder):
                 logger.error(err)
             logger.warning(f"retry to fetch stream url (count: {count})")
         logger.error("reached max times to retry")
-        raise err
+        raise
 
 
     def _init_rtmp(self, playlist_url):
@@ -130,7 +130,9 @@ class Recorder(base.Recorder):
                     "start": program.start,
                     "end": program.end,
         })
-        extractor = lambda res: [s for s in res.content.decode().splitlines() if s.endswith(".m3u8")][0]
+        extractor = (lambda res: [
+            s for s in res.content.decode().splitlines() if s.endswith(".m3u8")
+        ][0] )
         url = self._get_stream_url_with_retry(_plurl, extractor, headers)
 
         cmd = ("ffmpeg -headers 'X-Radiko-Authtoken:{authtoken}' -i {stream_url}" + 

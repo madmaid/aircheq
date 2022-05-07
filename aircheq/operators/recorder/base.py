@@ -72,9 +72,9 @@ class Recorder(object):
 
         return save_path
 
-
     def duration_from_now(self):
-        dur = naive_to_JST(self.program.end) - jst_now() + datetime.timedelta(seconds=10)
+        dur = naive_to_JST(self.program.end) - jst_now() + \
+            datetime.timedelta(seconds=10)
         return int(dur.total_seconds())
 
     def get_ffmpeg_cmd(self):

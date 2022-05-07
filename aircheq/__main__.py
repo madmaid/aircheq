@@ -13,13 +13,15 @@ from sqlalchemy import or_, and_, inspect
 from sqlalchemy.engine import create_engine
 from sqlalchemy.orm import sessionmaker
 
-
-from . import (userconfig, dbconfig)
+from . import (
+    userconfig,
+    dbconfig,
+)
 from .args import create_argparser
 from .dbconfig import start_session
-from .operators import (reserve, crawler, recorder)
-from .operators.utils import (jst_now, time_intervals, init_logger, datetime_to_time)
 from .operators import (reserve, crawler, recorder as recorder_modules)
+from .operators.utils import (
+    jst_now, time_intervals, init_logger, datetime_to_time)
 from .operators.parsers import model
 from .operators.parsers.model import (Program, Service, Channel)
 
@@ -32,6 +34,8 @@ logger = logging.getLogger(__name__)
 def create_recorder(config: userconfig.ConfigLoader, program: Program):
     r = getattr(recorder_modules, program.service)
     return r.Recorder(config, program)
+
+
 def finalize(Session, program: Program):
     with start_session(Session) as session:
         _program = session.merge(program)
@@ -55,7 +59,8 @@ def record(Session, recorder: recorder_modules.base.Recorder, program: Program):
         recorder.record()
 
     except KeyboardInterrupt:
-        logger.warning("Stopped recording by KeyboardInterrupt: {}".format(_program.id))
+        logger.warning(
+            "Stopped recording by KeyboardInterrupt: {}".format(_program.id))
         finalize(Session, program)
     except Exception as e:
         logger.error("Stopped recording by Unexpected: {pid}, {err}".format(
@@ -77,13 +82,13 @@ def record_reserved(
                 Program.is_recorded == False,
                 Program.is_recording == False,
                 Program.is_manual_reserved == False
-            ), 
+            ),
             and_(
                 Program.is_recorded == False,
                 Program.is_recording == False,
                 Program.is_manual_reserved == True
 
-            ), 
+            ),
         )
     )
     with start_session(Session) as session:
@@ -96,7 +101,6 @@ def record_reserved(
         if by_start < datetime.timedelta(seconds=monitor_interval):
 
             r = create_recorder(config, p)
-
 
             process = multiprocessing.Process(
                 target=record, args=(Session, r, p), name=p.id)
@@ -127,15 +131,16 @@ def monitor_reserved(
 def create_tables(engine):
     program_tables = (Program, Service, Channel)
 
-    table_exists = lambda table_name: inspect(engine).has_table(table_name)
+    def table_exists(table_name):
+        return inspect(engine).has_table(table_name)
+
     new_models = [t.__table__ for t in program_tables if not
-            table_exists(t.__tablename__)]
-    if new_models != []: 
+                  table_exists(t.__tablename__)]
+    if new_models != []:
         model.Base.metadata.create_all(bind=engine, tables=new_models)
 
     if not table_exists(reserve.Rule.__tablename__):
         reserve.Base.metadata.create_all(bind=engine)
-
 
 
 def main():

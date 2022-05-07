@@ -52,9 +52,8 @@ class ISOFormatDateTimeJSONEncoder(JSONEncoder):
         else:
             return list(iterable)
         return JSONEncoder.default(self, obj)
+
 app.json_encoder = ISOFormatDateTimeJSONEncoder
-
-
 
 def strip_underscore_attr(model_vars):
     return { k : v for k, v in model_vars.items() if not k.startswith("_")}

@@ -4,12 +4,12 @@ import datetime
 
 from sqlalchemy import (
         Column, Integer, String, DateTime, Interval, Boolean,
-        ForeignKey)
+        ForeignKey
+)
 from sqlalchemy.orm import relationship
 
-from ...dbconfig import Base 
-from ..utils import (jst_now, naive_to_JST)
-
+from ...dbconfig import Base
+from ..utils import (naive_to_JST)
 
 
 

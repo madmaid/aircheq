@@ -79,7 +79,8 @@ def persist_all_channels(Session, config: userconfig.ConfigLoader):
 
     for channel in channels:
         with start_session(Session) as session:
-            stored = session.query(Channel).filter_by(name=channel.name).one_or_none()
+            stored = session.query(Channel).filter_by(
+                name=channel.name).one_or_none()
             if stored is None:
                 session.add(channel)
 
@@ -88,7 +89,8 @@ def store_all_services(Session):
     # aircheq stores services to db half-manually from aircheq.operator.parser.__init__
     for parser_name in parsers.__all__:
         with start_session(Session) as session:
-            service = session.query(Service).filter_by(name=parser_name).one_or_none()
+            service = session.query(Service).filter_by(
+                name=parser_name).one_or_none()
             if service is None:
                 service = Service()
                 service.name = parser_name
@@ -106,21 +108,21 @@ def persist_all_programs(Session, config):
     now = jst_now()
 
     gonna_record = and_(
-            Program.is_reserved == True,
-            Program.start < now,
-            Program.end > now
+        Program.is_reserved == True,
+        Program.start < now,
+        Program.end > now
     )
     criteria = or_(Program.is_recording == True, gonna_record)
 
     future_programs = tuple(p for p in programs if p.start > now)
     now_onair = tuple(p for p in programs if p.start < now and p.end > now)
 
-
-    has_same = lambda targets, p: any(p.is_same_with(r) for r in targets)
+    def has_same(targets, p): return any(p.is_same_with(r) for r in targets)
 
     with start_session(Session) as session:
         recordings = session.query(Program).filter(criteria)
-        non_recordings = tuple(p for p in now_onair if not has_same(recordings, p))
+        non_recordings = tuple(
+            p for p in now_onair if not has_same(recordings, p))
 
         session.add_all(non_recordings)
         session.add_all(future_programs)
@@ -131,20 +133,20 @@ def delete_unused_programs(Session):
     now = jst_now()
     future = Program.start > now
     non_recorded = and_(
-            Program.end < now,
-            Program.is_recorded == False,
+        Program.end < now,
+        Program.is_recorded == False,
     )
     non_recording = and_(
-            Program.start < now,
-            Program.end > now,
-            Program.is_reserved == False,
-            Program.is_recording == False,
+        Program.start < now,
+        Program.end > now,
+        Program.is_reserved == False,
+        Program.is_recording == False,
     )
 
     criteria = or_(
-            future,
-            non_recorded,
-            non_recording,
+        future,
+        non_recorded,
+        non_recording,
     )
 
     with start_session(Session) as session:
@@ -205,7 +207,7 @@ def execute(config_pathes: userconfig.AircheqDir):
 
     # launch scheduler
     sch = sched.scheduler(time.time)
-    upnext = jst_now().replace(minute=10) 
+    upnext = jst_now().replace(minute=10)
     if upnext < jst_now():
         upnext += datetime.timedelta(hours=1)
 

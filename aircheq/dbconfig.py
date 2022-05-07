@@ -10,8 +10,6 @@ from alembic.runtime import migration
 from sqlalchemy import MetaData
 from sqlalchemy.orm import Session, sessionmaker
 from sqlalchemy.ext.declarative import declarative_base
-
-
 from . import userconfig
 
 logger = logging.getLogger(__name__)
@@ -32,14 +30,14 @@ def migrate_to_head(engine, config):
     current_dir = str(pathlib.PosixPath(".").absolute())
     ini_path = current_dir / pathlib.PurePosixPath("alembic.ini")
 
-    # check that DB revision is latest 
+    # check that DB revision is latest
     alembic_cfg = alembic.config.Config(str(ini_path))
     if check_current_head(alembic_cfg, engine):
         logger.debug("DB revision is up-to-date.")
         return
 
     # instead of "PYTHONPATH=."
-    if not current_dir in sys.path:
+    if not (current_dir in sys.path):
         sys.path.append(current_dir)
 
     # actual migration
@@ -52,6 +50,7 @@ def migrate_to_head(engine, config):
 
     logger.debug("DB revision is up-to-date.")
 
+
 class TestingSession(Session):
     def commit(self):
         self.flush
@@ -60,12 +59,14 @@ class TestingSession(Session):
     def remove(self):
         self.expire_all()
 
+
 def create_session(engine, testing=False):
     return sessionmaker(
         bind=engine,
         class_=TestingSession if testing else Session,
         expire_on_commit=False
     )
+
 
 @contextlib.contextmanager
 def start_session(Session, *args):
@@ -78,7 +79,6 @@ def start_session(Session, *args):
         raise
     finally:
         session.close()
-
 
 
 meta = MetaData(naming_convention={
