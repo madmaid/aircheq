@@ -62,7 +62,7 @@ def time_intervals(timedelta, first_time=None):
         exec_time += timedelta
         yield exec_time
 
-def naive_to_JST(dt):
+def naive_to_JST(dt) -> datetime.datetime:
     tz_tokyo = pytz.timezone("Asia/Tokyo")
     if getattr(dt, "tzinfo", None) != tz_tokyo:
         return tz_tokyo.localize(dt)
