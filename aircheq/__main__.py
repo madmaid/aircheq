@@ -2,6 +2,7 @@
 import datetime
 import time
 import sched
+import sys
 import multiprocessing
 
 import pathlib
@@ -180,4 +181,4 @@ def main():
 
 
 if __name__ == '__main__':
-    main()
+    sys.exit(main())

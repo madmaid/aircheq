@@ -1,5 +1,6 @@
 import datetime
 import pathlib
+import sys
 
 import pytz
 
@@ -245,8 +246,10 @@ def delete_rule():
     session.close()
     return jsonify([strip_underscore_attr(vars(r)) for r in result])
 
+
 def main():
     app.run()
 
+
 if __name__ == "__main__":
-    main()
+    sys.exit(main())
