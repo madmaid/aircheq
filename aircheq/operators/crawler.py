@@ -212,7 +212,10 @@ def execute(config_pathes: userconfig.AircheqDir):
         upnext += datetime.timedelta(hours=1)
 
     for dt in utils.time_intervals(datetime.timedelta(hours=1), first_time=upnext):
-        sch.enterabs(utils.datetime_to_time(dt), 1, lambda:
-                task_with_retry(Session))
+        sch.enterabs(
+                utils.datetime_to_time(dt),
+                1,
+                lambda: task_with_retry(Session, config)
+        )
         logger.debug("Next Crawl is scheduled at {}".format(dt))
         sch.run()
