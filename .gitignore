@@ -11,6 +11,5 @@ __pycache__/
 
 docker/.env
 docker/config/*
-!docker/config/.gitkeep
-
-
+!docker/config/*/.gitkeep
+!docker/config/config.sample.toml
