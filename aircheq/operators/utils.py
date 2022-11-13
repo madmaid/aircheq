@@ -14,7 +14,12 @@ KANJI_WEEKDAYS = ['月', '火', '水', '木', '金', '土', '日']
 def parse_time(time_str: str):
     return re.search('(\d+):(\d+)', time_str).groups()
 
-def datetime_hour_over_24(date: datetime.date, hour: int, minute: int) -> datetime.datetime:
+
+def datetime_hour_over_24(
+        date: datetime.date,
+        hour: int,
+        minute: int
+) -> datetime.datetime:
 
     if hour >= 24:
         hour = abs(hour - 24)
@@ -31,7 +36,10 @@ def weekday_to_date(kanji_weekday, start_day=None):
     start_day = start_day or datetime.datetime.now()
 
     weekdays = dict(zip(KANJI_WEEKDAYS, range(7)))
-    dates = [ start_day + datetime.timedelta(days=days) for days in weekdays.values() ]
+    dates = [
+        start_day + datetime.timedelta(days=days)
+             for days in weekdays.values()
+    ]
     for date in dates:
         if date.weekday() == weekdays[kanji_weekday]:
             return date

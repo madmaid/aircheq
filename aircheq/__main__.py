@@ -135,9 +135,12 @@ def create_tables(engine):
     def table_exists(table_name):
         return inspect(engine).has_table(table_name)
 
-    new_models = [t.__table__ for t in program_tables if not
-                  table_exists(t.__tablename__)]
-    if new_models != []:
+    new_models = [
+        t.__table__ for t in program_tables
+        if not table_exists(t.__tablename__)
+    ]
+    print("new_models: ", new_models)
+    if len(new_models) > 0:
         model.Base.metadata.create_all(bind=engine, tables=new_models)
 
     if not table_exists(reserve.Rule.__tablename__):

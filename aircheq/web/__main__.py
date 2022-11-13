@@ -16,9 +16,9 @@ from .. import (
     args
 )
 from ..operators.parsers.model import (
-        Program,
-        Service,
-        Channel,
+    Program,
+    Service,
+    Channel,
 )
 from ..operators import reserve
 
@@ -36,9 +36,10 @@ engine = create_engine(userconfig.get_db_url(config), echo=True)
 Session = dbconfig.create_session(engine)
 
 app = Flask('aircheq-api',
-        template_folder=str(TEMPLATE_DIR),
-        static_folder=str(STATIC_DIR),
-        )
+            template_folder=str(TEMPLATE_DIR),
+            static_folder=str(STATIC_DIR),
+            )
+
 
 class ISOFormatDateTimeJSONEncoder(JSONEncoder):
     def default(self, obj):
@@ -54,10 +55,13 @@ class ISOFormatDateTimeJSONEncoder(JSONEncoder):
             return list(iterable)
         return JSONEncoder.default(self, obj)
 
+
 app.json_encoder = ISOFormatDateTimeJSONEncoder
 
+
 def strip_underscore_attr(model_vars):
-    return { k : v for k, v in model_vars.items() if not k.startswith("_")}
+    return {k: v for k, v in model_vars.items() if not k.startswith("_")}
+
 
 def program_to_jsondict(program):
     p = vars(program)
@@ -65,6 +69,7 @@ def program_to_jsondict(program):
     p['duration'] = int(program.duration.total_seconds() * 1000)
     # exclude properties starting with "_"
     return strip_underscore_attr(p)
+
 
 def strip_for_guide(program_dict):
     p = program_dict.copy()
@@ -80,6 +85,7 @@ def strip_for_guide(program_dict):
 def dashboard():
     return render_template("index.html")
 
+
 @app.route('/<path:path>', methods=['GET'])
 def any_root_path(path):
     return render_template("index.html")
@@ -93,13 +99,15 @@ def all():
         programs = session.query(Program).order_by(Program.id)
 
     session.close()
-    return jsonify([ program_to_jsondict(p) for p in programs ])
+    return jsonify([program_to_jsondict(p) for p in programs])
+
 
 @app.route('/api/guide.json', methods=['GET'])
 def guide():
     session = Session(autocommit=True)
     with session.begin(subtransactions=True):
-        channels = set(p.channel for p in session.query(Program).order_by(Program.service))
+        channels = set(p.channel for p in session.query(
+            Program).order_by(Program.service))
     session.close()
 
     _json = list()
@@ -108,19 +116,22 @@ def guide():
         session = Session(autocommit=True)
         with session.begin(subtransactions=True):
 
-            query = and_(Program.channel == chan, Program.end > datetime.datetime.now())
-            programs = session.query(Program).filter(query).order_by(Program.start)
+            query = and_(Program.channel == chan,
+                         Program.end > datetime.datetime.now())
+            programs = session.query(Program).filter(
+                query).order_by(Program.start)
 
             if programs != []:
                 name_jp = list(set(p.channel_jp for p in programs))[0]
                 _json.append({
-                        'name': chan,
-                        'name_jp': name_jp,
-                        'programs': [ program_to_jsondict(p) for p in programs ]
+                    'name': chan,
+                    'name_jp': name_jp,
+                    'programs': [program_to_jsondict(p) for p in programs]
                 })
 
         session.close()
     return jsonify(_json)
+
 
 @app.route('/api/program_by_id.json', methods=['POST'])
 def program_by_id():
@@ -134,6 +145,7 @@ def program_by_id():
     session.close()
     return jsonify(result)
 
+
 @app.route('/api/toggle_reserve.json', methods=['POST'])
 def toggle_manual_reserve():
     program_id = request.json.get('id', None)
@@ -143,42 +155,44 @@ def toggle_manual_reserve():
         program = session.query(Program).filter_by(id=program_id).one()
         program.is_manual_reserved = not program.is_manual_reserved
 
-
     session.close()
     return jsonify({"res": "done"})
 
+
 @app.route('/api/reserved.json', methods=['GET'])
 def get_reserved():
-    query = and_(or_(Program.is_reserved==True,
-        Program.is_manual_reserved==True),
-        Program.start >  datetime.datetime.now()
-    )
+    query = and_(or_(Program.is_reserved == True,
+                     Program.is_manual_reserved == True),
+                 Program.start > datetime.datetime.now()
+                 )
 
     session = Session(autocommit=True)
     with session.begin(subtransactions=True):
 
         programs = session.query(Program).filter(query)
-        result = [ program_to_jsondict(p) for p in programs ]
+        result = [program_to_jsondict(p) for p in programs]
 
     session.close()
     return jsonify(result)
+
 
 @app.route('/api/search.json', methods=['POST'])
 def search():
     PARAM_KEYS = ['id', 'service', 'channel', 'title', 'info']
-    param_vals = [ request.json.get(k) for k in PARAM_KEYS ]
+    param_vals = [request.json.get(k) for k in PARAM_KEYS]
     params = zip(PARAM_KEYS, param_vals)
 
-    query = and_( getattr(Program, k).contains(v) for k, v in params if v != '' )
+    query = and_(getattr(Program, k).contains(v) for k, v in params if v != '')
 
     session = Session(autocommit=True)
     with session.begin(subtransactions=True):
 
         programs = session.query(Program).filter(query)
-        result = [ program_to_jsondict(p) for p in programs ]
+        result = [program_to_jsondict(p) for p in programs]
 
     session.close()
     return jsonify(result)
+
 
 @app.route('/api/rules.json', methods=['GET'])
 def fetch_rules():
@@ -186,10 +200,11 @@ def fetch_rules():
     with session.begin(subtransactions=True):
 
         _rules = session.query(reserve.Rule).order_by(reserve.Rule.id)
-        rules = [ strip_underscore_attr(vars(r)) for r in _rules ]
+        rules = [strip_underscore_attr(vars(r)) for r in _rules]
 
     session.close()
     return jsonify(rules)
+
 
 @app.route('/api/add_rule.json', methods=['POST'])
 def add_rule():
@@ -211,6 +226,7 @@ def add_rule():
     session.close()
     return jsonify([strip_underscore_attr(vars(r)) for r in result])
 
+
 @app.route('/api/change_rule.json', methods=['POST'])
 def change_rule():
     _json = request.json
@@ -230,6 +246,7 @@ def change_rule():
 
     session.close()
     return jsonify([strip_underscore_attr(vars(r)) for r in result])
+
 
 @app.route("/api/delete_rule.json", methods=["POST"])
 def delete_rule():
