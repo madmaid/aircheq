@@ -5,6 +5,7 @@ import logging
 import collections
 import pathlib
 import re
+import typing
 
 import pytz
 
@@ -35,7 +36,7 @@ def weekday_to_date(kanji_weekday, start_day=None):
     """
     start_day = start_day or datetime.datetime.now()
 
-    weekdays = dict(zip(KANJI_WEEKDAYS, range(7)))
+    weekdays: dict[str, int] = dict(zip(KANJI_WEEKDAYS, range(7)))
     dates = [
         start_day + datetime.timedelta(days=days)
              for days in weekdays.values()
@@ -45,6 +46,7 @@ def weekday_to_date(kanji_weekday, start_day=None):
             return date
 
 def datetime_to_time(dt):
+def datetime_to_time(dt: datetime.datetime) -> float:
     return time.mktime(dt.timetuple())
 
 def get_coming_weekday(wday_num):
@@ -60,7 +62,13 @@ def get_coming_weekday(wday_num):
     weekdays.rotate(-today.weekday())
     return today + datetime.timedelta(days=weekdays.index(wday_num))
 
-def time_intervals(timedelta, first_time=None):
+
+def time_intervals(
+        timedelta: datetime.timedelta,
+        first_time: datetime.datetime = None
+
+) -> typing.Generator[datetime.datetime, None, None]:
+
     first_time = first_time or jst_now()
 
     yield first_time
@@ -70,17 +78,19 @@ def time_intervals(timedelta, first_time=None):
         exec_time += timedelta
         yield exec_time
 
+
 def naive_to_JST(dt) -> datetime.datetime:
     tz_tokyo = pytz.timezone("Asia/Tokyo")
     if getattr(dt, "tzinfo", None) != tz_tokyo:
         return tz_tokyo.localize(dt)
     return dt
 
-def jst_now():
+
+def jst_now() -> datetime.datetime:
     return datetime.datetime.now(tz=pytz.timezone("Asia/Tokyo"))
 
-def init_logger(logpath):
-    LOG_FORMAT = logging.Formatter("{asctime} - {levelname:8s} - {message}", style="{")
+
+def init_logger(logpath: typing.Union[str, os.PathLike], quiet=False) -> logging.Logger:
     logger = logging.getLogger("aircheq")
     logger.setLevel(logging.DEBUG)
 

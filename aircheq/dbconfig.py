@@ -15,17 +15,17 @@ from . import userconfig
 logger = logging.getLogger(__name__)
 
 
-def check_current_head(alembic_cfg, connectable):
-    """
-    type: (config.Config, engine.Engine) -> bool
-    """
+def check_current_head(
+        alembic_cfg: alembic.config.Config,
+        connectable: Engine
+) -> bool:
     directory = script.ScriptDirectory.from_config(alembic_cfg)
     with connectable.begin() as connection:
         context = migration.MigrationContext.configure(connection)
         return set(context.get_current_heads()) == set(directory.get_heads())
 
 
-def migrate_to_head(engine, config):
+def migrate_to_head(engine: Engine, config: userconfig.ConfigLoader):
 
     current_dir = str(pathlib.PosixPath(".").absolute())
     ini_path = current_dir / pathlib.PurePosixPath("alembic.ini")
