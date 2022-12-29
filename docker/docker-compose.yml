@@ -6,7 +6,7 @@ services:
     volumes:
         - type: bind
           source: "./config"
-          target: "/home/aircheq/.aircheq"
+          target: "/opt/app/aircheq_config"
     environment:
       - HOST_UID
       - HOST_GID
@@ -18,7 +18,7 @@ services:
     volumes:
       - type: bind
         source: "./config"
-        target: "/home/aircheq/.aircheq"
+        target: "/opt/app/aircheq_config"
     expose:
       - "5000"
     ports:
