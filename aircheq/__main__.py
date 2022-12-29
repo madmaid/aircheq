@@ -162,9 +162,9 @@ def main():
     #  userconfig.make_default_config_dir()
 
     # migrate DB
-    engine = create_engine(userconfig.get_db_url(config), echo=False)
+    db_url = userconfig.get_db_url(config)
+    engine = create_engine(db_url, echo=False)
     Session = dbconfig.create_session(engine)
-    dbconfig.migrate_to_head(engine, config)
     create_tables(engine)
 
     # create main processes
