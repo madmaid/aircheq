@@ -49,9 +49,10 @@ def datetime_to_time(dt):
 def datetime_to_time(dt: datetime.datetime) -> float:
     return time.mktime(dt.timetuple())
 
-def get_coming_weekday(wday_num):
+
+def get_coming_weekday(wday_num: int) -> datetime.date:
     """
-    wday_num -> datetime object coming weekday taken as argument from today.
+    wday_num -> date object coming weekday taken as argument from today.
     """
     weekdays = collections.deque(range(7))
 
