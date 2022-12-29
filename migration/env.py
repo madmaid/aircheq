@@ -9,7 +9,8 @@ from alembic import context
 from aircheq.operators.parsers import model
 from aircheq.operators import reserve
 
-from aircheq.dbconfig import Base #, meta
+from aircheq import userconfig
+from aircheq.dbconfig import Base
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
@@ -23,7 +24,7 @@ fileConfig(config.config_file_name)
 # for 'autogenerate' support
 # from myapp import mymodel
 
-target_metadata = Base.metadata 
+target_metadata = Base.metadata
 
 
 # other values from the config, defined by the needs of env.py,
@@ -65,8 +66,6 @@ def run_migrations_online():
     url = context.get_x_argument(as_dictionary=True).get("db_url")
     if url is not None:
         ini_section["sqlalchemy.url"] = url
-
-
 
     connectable = engine_from_config(
         ini_section,
