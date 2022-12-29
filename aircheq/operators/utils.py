@@ -29,6 +29,10 @@ def datetime_hour_over_24(
     return datetime.datetime.combine(date, datetime.time(hour, minute))
 
 
+class NotDateError(Exception):
+    pass
+
+
 def weekday_to_date(kanji_weekday, start_day=None):
     """
     KANJI_WEEKDAYS -> datetime.date in 7days from start_day.
@@ -45,7 +49,9 @@ def weekday_to_date(kanji_weekday, start_day=None):
         if date.weekday() == weekdays[kanji_weekday]:
             return date
 
-def datetime_to_time(dt):
+    raise NotDateError
+
+
 def datetime_to_time(dt: datetime.datetime) -> float:
     return time.mktime(dt.timetuple())
 
