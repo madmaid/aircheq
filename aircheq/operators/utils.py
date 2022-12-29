@@ -3,7 +3,7 @@ import time
 import datetime
 import logging
 import collections
-import pathlib
+import os
 import re
 import typing
 
@@ -91,19 +91,21 @@ def jst_now() -> datetime.datetime:
 
 
 def init_logger(logpath: typing.Union[str, os.PathLike], quiet=False) -> logging.Logger:
+    LOG_FORMAT = logging.Formatter(
+        "{asctime} - {levelname:8s} - {message}",
+        style="{"
+    )
     logger = logging.getLogger("aircheq")
+
     logger.setLevel(logging.DEBUG)
+    console = logging.StreamHandler()
+    console.setLevel(logging.DEBUG)
+    console.setFormatter(LOG_FORMAT)
+    logger.addHandler(console)
 
     file_handler = logging.FileHandler(logpath)
     file_handler.setLevel(logging.DEBUG)
     file_handler.setFormatter(LOG_FORMAT)
-
-    console = logging.StreamHandler()
-    console.setFormatter(LOG_FORMAT)
-    console.setLevel(logging.INFO)
-
     logger.addHandler(file_handler)
-    logger.addHandler(console)
 
     return logger
-
