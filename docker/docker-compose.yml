@@ -4,9 +4,18 @@ services:
   aircheq_operator:
     image: aircheq_operator:latest
     volumes:
-        - type: bind
-          source: "./config"
-          target: "/opt/app/aircheq_config"
+      - type: bind
+        source: "./config"
+        target: "/opt/app/aircheq_config"
+      - type: bind
+        source: "./config/db"
+        target: "/opt/app/aircheq_config/db"
+      - type: bind
+        source: "./config/logs"
+        target: "/opt/app/aircheq_config/logs"
+      - type: bind
+        source: "./config/recorded"
+        target: "/opt/app/aircheq_config/recorded"
     environment:
       - HOST_UID
       - HOST_GID
@@ -19,6 +28,15 @@ services:
       - type: bind
         source: "./config"
         target: "/opt/app/aircheq_config"
+      - type: bind
+        source: "./config/db"
+        target: "/opt/app/aircheq_config/db"
+      - type: bind
+        source: "./config/logs"
+        target: "/opt/app/aircheq_config/logs"
+      - type: bind
+        source: "./config/recorded"
+        target: "/opt/app/aircheq_config/recorded"
     expose:
       - "5000"
     ports:

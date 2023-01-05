@@ -10,6 +10,11 @@ __pycache__/
 .direnv/
 
 docker/.env
-docker/config/*
-!docker/config/*/.gitkeep
+docker/config/db/*
+docker/config/logs/*
+docker/config/recorded/*
+docker/config/config.toml
+!docker/config/db/.gitkeep
+!docker/config/logs/.gitkeep
+!docker/config/recorded/.gitkeep
 !docker/config/config.sample.toml
