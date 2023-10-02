@@ -17,10 +17,7 @@ RUN set -eux; \
     rm -rf /var/lib/apt/lists/*; 
 
 ## ffmpeg
-RUN curl -Lo /tmp/ffmpeg.tar.gz "https://johnvansickle.com/ffmpeg/releases/ffmpeg-release-amd64-static.tar.xz"; \
-    tar -C /tmp -xf /tmp/ffmpeg.tar.gz; \
-    mv /tmp/ffmpeg-*-amd64-static/ffmpeg /opt; \
-    rm -rf /tmp/ffmpeg*
+COPY --from=mwader/static-ffmpeg:6.0 /ffmpeg /opt
 
 WORKDIR /opt/app
 RUN pip3 install --no-cache-dir poetry
