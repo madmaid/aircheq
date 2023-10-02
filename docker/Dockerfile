@@ -1,5 +1,5 @@
 ## BUILD
-FROM python:3.9-slim-buster as base
+FROM python:3.9-slim-bookworm as base
 
 ENV PYTHONUNBUFFERED=1 \
     PYTHONDONTWRITEBYTECODE=1 \
