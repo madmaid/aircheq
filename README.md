@@ -1,32 +1,6 @@
 # aircheq
 Recorder for Japanese streaming radio service
 
-## Dependencies
-
-### Required
-* Python >= 3.7
-* poetry
-* ffmpeg (as a global package)
-
-* NHK API KEY (need to register)
-
-### Optional 
-* RTMPDump (as a global package)
-* swfextract (as a global package)
-* webpack (as a global package, to build WUI from source)
-
-## Install
-    cd /path/to/project_root/
-    poetry install
-
-## Run
-```bash
-    cd /path/to/project_root/
-    poetry run python -m aircheq        # Start Operator
-    poetry run python -m aircheq.web    # Start Web Server
-```
-you need to configure `~/.aircheq/config.toml`
-
 ## Configure
 
 to run, you need to set NHK API key.
@@ -48,7 +22,7 @@ you can also change a path where recorded saved
 recorded_dir = "/path/to/your/recorded/directory"
 ```
 
-## Install and run with Docker Compose
+## Run by Docker Compose
 
 ```bash
     cd /path/to/project_root
@@ -70,6 +44,31 @@ recorded_dir = "/path/to/your/recorded/directory"
     docker-compose -f ./docker-compose.yml down
 
 ```
+## Run on local environment
+
+### Required
+* Python >= 3.9
+* poetry
+* ffmpeg (as a global package)
+
+* NHK API KEY (need to register)
+
+### Optional 
+* RTMPDump (as a global package)
+* swfextract (as a global package)
+* webpack (as a global package, to build WUI from source)
+
+### Install
+    cd /path/to/project_root/
+    uv sync
+
+### Run
+```bash
+    cd /path/to/project_root/
+    .venv/bin/python -m aircheq        # Start Operator
+    .venv/bin/python -m aircheq.web    # Start Web Server
+```
+you need to configure `~/.aircheq/config.toml`
 
 
 ## Migrate from config.py to config.toml
