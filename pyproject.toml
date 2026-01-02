@@ -5,7 +5,7 @@ description = ""
 authors = [{ name = "madmaid", email = "madmaid@users.noreply.github.com" }]
 requires-python = ">=3.7"
 dependencies = [
-    "lxml~=4.3.4",
+    "lxml~=4.9.1",
     "python-dateutil~=2.5.3",
     "pytz~=2016.4",
     "requests~=2.20.1",
