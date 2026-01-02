@@ -5,7 +5,7 @@ import sys
 import pytz
 
 from flask import Flask, jsonify, request, render_template
-from flask.json import JSONEncoder
+from flask.json.provider import DefaultJSONProvider
 from sqlalchemy import or_, and_
 from sqlalchemy.engine import create_engine
 from sqlalchemy.orm import scoped_session, sessionmaker
@@ -41,7 +41,9 @@ app = Flask('aircheq-api',
             )
 
 
-class ISOFormatDateTimeJSONEncoder(JSONEncoder):
+
+# Flask 3.x: Use custom JSONProvider instead of JSONEncoder
+class ISOFormatDateTimeJSONProvider(DefaultJSONProvider):
     def default(self, obj):
         try:
             if isinstance(obj, datetime.datetime):
@@ -53,10 +55,19 @@ class ISOFormatDateTimeJSONEncoder(JSONEncoder):
             pass
         else:
             return list(iterable)
-        return JSONEncoder.default(self, obj)
+        return super().default(obj)
+
+    def dumps(self, obj, **kwargs):
+        # Use our custom default method
+        import json
+        return json.dumps(obj, default=self.default, **kwargs)
+
+    def loads(self, s, **kwargs):
+        import json
+        return json.loads(s, **kwargs)
 
 
-app.json_encoder = ISOFormatDateTimeJSONEncoder
+app.json_provider_class = ISOFormatDateTimeJSONProvider
 
 
 def strip_underscore_attr(model_vars):

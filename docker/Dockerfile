@@ -1,51 +1,45 @@
 ## BUILD
 FROM python:3.9-slim-bookworm as base
-
 ENV PYTHONUNBUFFERED=1 \
     PYTHONDONTWRITEBYTECODE=1 \
-    PIP_NO_CACHE_DIR=off \
-    PIP_DISABLE_PIP_VERSION_CHECK=on \
-    PIP_DEFAULT_TIMEOUT=100 \
-    POETRY_VIRTUALENVS_IN_PROJECT=true \
-    POETRY_NO_INTERACTION=1
+    UV_COMPILE_BYTECODE=1 \
+    UV_LINK_MODE=copy
 
-## install ffmpeg dependencies with apt
+## install dependencies with apt
 RUN set -eux; \
     apt-get update; \
     apt-get install -y --no-install-recommends \
-        curl build-essential xz-utils; \
-    rm -rf /var/lib/apt/lists/*; 
+    curl build-essential xz-utils; \
+    rm -rf /var/lib/apt/lists/*
+
+## install uv
+COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /usr/local/bin/
 
 ## ffmpeg
 COPY --from=mwader/static-ffmpeg:6.0 /ffmpeg /opt
 
 WORKDIR /opt/app
-RUN pip3 install --no-cache-dir poetry
-COPY poetry.lock pyproject.toml ./
-RUN poetry install --no-dev
-
+COPY pyproject.toml ./
+COPY uv.lock ./
+RUN uv sync --frozen --no-dev
 
 ## RUN operator
-FROM base as operator_stage
-
+FROM python:3.9-slim-bookworm as operator_stage
 COPY --from=base /opt/app/.venv /opt/app/.venv
 COPY --from=base /opt/ffmpeg /usr/bin/ffmpeg
 COPY ./aircheq /opt/app/aircheq
-COPY ./alembic.ini  /opt/app/alembic.ini
+COPY ./alembic.ini /opt/app/alembic.ini
 COPY ./migration /opt/app/migration
 RUN mkdir /opt/app/aircheq_config
-
 WORKDIR /opt/app
-CMD ["bash", "-c", "source /opt/app/.venv/bin/activate && python -m aircheq --config-dir=/opt/app/aircheq_config/"]
+CMD ["/opt/app/.venv/bin/python", "-m", "aircheq", "--config-dir=/opt/app/aircheq_config/"]
 
 ## RUN web
-FROM base as web_stage
-
+FROM python:3.9-slim-bookworm as web_stage
 COPY --from=base /opt/app/.venv /opt/app/.venv
 COPY ./aircheq /opt/app/aircheq
-COPY ./alembic.ini  /opt/app/alembic.ini
+COPY ./alembic.ini /opt/app/alembic.ini
 COPY ./migration /opt/app/migration
 RUN mkdir /opt/app/aircheq_config
-
 WORKDIR /opt/app
-CMD ["bash", "-c", "source /opt/app/.venv/bin/activate && python -m aircheq.web --config-dir=/opt/app/aircheq_config/"]
+CMD ["/opt/app/.venv/bin/python", "-m", "aircheq.web", "--config-dir=/opt/app/aircheq_config/"]
